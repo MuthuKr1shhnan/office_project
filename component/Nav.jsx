@@ -5,9 +5,10 @@ import Link from "next/link";
 import Btn from "../component/Btn";
 import Image from "next/image";
 import ProfileDrawer from "../component/ProfileDrawer"; // ✅ import ProfileDrawer
-import { auth } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { doc, getDoc } from "firebase/firestore";
 
 const menu = [
   {
@@ -17,10 +18,12 @@ const menu = [
   {
     label: "Doctors",
     link: "/doctors",
+    hideFor: ["doctor"], // Hide for doctors
   },
   {
     label: "Patients",
     link: "/patients",
+    hideFor: ["patient"], // Hide for patients
   },
   {
     label: "Feedback",
@@ -40,15 +43,28 @@ const login = {
 export default function Nav() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const router = useRouter();
 
-  // 🔐 Check auth state
+  // 🔐 Check auth state and get user role
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         setUser(null);
+        setUserRole(null);
       } else {
         setUser(currentUser);
+        
+        // Get user role from Firestore
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            setUserRole(userDoc.data().role);
+          }
+        } catch (err) {
+          console.error("Error fetching user role:", err);
+        }
       }
     });
 
@@ -65,6 +81,12 @@ export default function Nav() {
     }
   };
 
+  // Filter menu items based on user role
+  const filteredMenu = menu.filter((item) => {
+    if (!item.hideFor) return true;
+    return !item.hideFor.includes(userRole);
+  });
+
   return (
     <header className="sticky w-full top-0 z-50 bg-white shadow border-b border-slate-200">
       <nav className="max-w-full lg:px-12 px-4 sm:px-6  flex items-center justify-between h-16">
@@ -80,7 +102,7 @@ export default function Nav() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
-          {menu.map((d, i) => (
+          {filteredMenu.map((d, i) => (
             <Link
               href={d.link}
               key={i}
@@ -116,7 +138,7 @@ export default function Nav() {
       {isOpen && (
         <div className="md:hidden border-t border-slate-200 bg-white">
           <div className="px-4 py-3 space-y-2">
-            {menu.map((m, i) => (
+            {filteredMenu.map((m, i) => (
               <Link
                 key={i}
                 href={m.link}
