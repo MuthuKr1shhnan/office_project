@@ -18,12 +18,12 @@ const menu = [
   {
     label: "Doctors",
     link: "/doctors",
-    hideFor: ["doctor"], // Hide for doctors
+    hideFor: "doctor", // Hide for doctors
   },
   {
     label: "Patients",
     link: "/patients",
-    hideFor: ["patient"], // Hide for patients
+    hideFor: "patient", // Hide for patients
   },
   {
     label: "Feedback",
@@ -44,6 +44,7 @@ export default function Nav() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [userRoleStatus, setUserRoleStatus] = useState(false);
   const router = useRouter();
 
   // 🔐 Check auth state and get user role
@@ -54,7 +55,7 @@ export default function Nav() {
         setUserRole(null);
       } else {
         setUser(currentUser);
-        
+
         // Get user role from Firestore
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
@@ -75,7 +76,7 @@ export default function Nav() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.push("/login");
+      router.push("/");
     } catch (err) {
       console.error("Logout error:", err);
     }
@@ -84,29 +85,29 @@ export default function Nav() {
   // Filter menu items based on user role
   const filteredMenu = menu.filter((item) => {
     if (!item.hideFor) return true;
-    return !item.hideFor.includes(userRole);
+    return !item.hideFor.includes(userRole );
   });
 
   return (
-    <header className="sticky w-full top-0 z-50 bg-white shadow border-b border-slate-200">
-      <nav className="max-w-full lg:px-12 px-4 sm:px-6  flex items-center justify-between h-16">
+    <header className='sticky w-full top-0 z-50 bg-white shadow border-b border-slate-200'>
+      <nav className='max-w-full lg:px-12 px-4 sm:px-6  flex items-center justify-between h-16'>
         {/* Brand */}
-        <Link href="/home" className="flex items-center gap-2">
+        <Link href='/home' className='flex items-center gap-2'>
           <Image
             src={logo}
-            alt="Logo"
-            className="w-16 lg:min-w-[230px] md:min-w-[170px] min-w-[150px] h-auto md:pr-8 pointer-events-none"
+            alt='Logo'
+            className='w-16 lg:min-w-[230px] md:min-w-[170px] min-w-[150px] h-auto md:pr-8 pointer-events-none'
             priority
           />
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className='hidden md:flex items-center gap-6'>
           {filteredMenu.map((d, i) => (
             <Link
               href={d.link}
               key={i}
-              className="text-slate-600 hover:text-slate-900"
+              className='text-slate-600 hover:text-slate-900'
             >
               {d.label}
             </Link>
@@ -114,8 +115,12 @@ export default function Nav() {
         </div>
 
         {/* Actions */}
-        <div className="hidden md:flex items-center gap-3">
-          <Btn variant="primary" className="w-full" onClick={() => setIsOpen(true)}>
+        <div className='hidden md:flex items-center gap-3'>
+          <Btn
+            variant='primary'
+            className='w-full'
+            onClick={() => setIsOpen(true)}
+          >
             {login.label}
           </Btn>
         </div>
@@ -123,34 +128,34 @@ export default function Nav() {
         {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50"
+          className='md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50'
         >
-          <span className="sr-only">Open menu</span>
-          <div className="space-y-1">
-            <span className="block w-5 h-0.5 bg-slate-900"></span>
-            <span className="block w-5 h-0.5 bg-slate-900"></span>
-            <span className="block w-5 h-0.5 bg-slate-900"></span>
+          <span className='sr-only'>Open menu</span>
+          <div className='space-y-1'>
+            <span className='block w-5 h-0.5 bg-slate-900'></span>
+            <span className='block w-5 h-0.5 bg-slate-900'></span>
+            <span className='block w-5 h-0.5 bg-slate-900'></span>
           </div>
         </button>
       </nav>
 
       {/* Mobile Panel */}
       {isOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white">
-          <div className="px-4 py-3 space-y-2">
+        <div className='md:hidden border-t border-slate-200 bg-white'>
+          <div className='px-4 py-3 space-y-2'>
             {filteredMenu.map((m, i) => (
               <Link
                 key={i}
                 href={m.link}
-                className="block px-2 py-2 rounded hover:bg-slate-50"
+                className='block px-2 py-2 rounded hover:bg-slate-50'
               >
                 {m.label}
               </Link>
             ))}
 
-            <div className="flex gap-2 pt-2">
+            <div className='flex gap-2 pt-2'>
               <Btn
-                className="flex-1 px-3 py-2 rounded-lg border bg-[#FE5B63] text-center"
+                className='flex-1 px-3 py-2 rounded-lg border bg-[#FE5B63] text-center'
                 onClick={() => setIsOpen(true)}
               >
                 {login.label}

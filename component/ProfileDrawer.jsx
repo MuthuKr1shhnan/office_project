@@ -3,12 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Btn from "@/component/Btn";
-import {
-  updateProfile,
-  updatePassword,
-  updateEmail,
-  deleteUser,
-} from "firebase/auth";
+import { updateProfile, updatePassword, deleteUser } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
@@ -24,8 +19,9 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
   const [address, setAddress] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
-  const [role, setRole] = useState("");
   const [degree, setDegree] = useState("");
+  const [role, setRole] = useState("");
+  const [fee, setFee] = useState("");
 
   // Password change state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -55,7 +51,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
       try {
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
-
+        console.log("Data", userDoc);
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setDisplayName(userData.displayName || user.displayName || "");
@@ -65,6 +61,9 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
           setGender(userData.gender || "");
           setRole(userData.role || "");
           setDegree(userData.degree || "");
+          setFee(userData.fee || "");
+          console.log(userData.role);
+          // localStorage.setItem("role",userData.role);
         } else {
           // Initialize with Firebase Auth data if Firestore doc doesn't exist
           setDisplayName(user.displayName || "");
@@ -82,7 +81,6 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
   }, [user, isOpen]);
 
   if (!user) return null;
-
   const handleEditToggle = async () => {
     if (isEditing) {
       // Reload data when canceling
@@ -99,6 +97,8 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
           setAge(userData.age || "");
           setGender(userData.gender || "");
           setRole(userData.role || "");
+          
+          localStorage.setItem("userRole", role);
           setDegree(userData.degree || "");
         }
       } catch (error) {
@@ -148,7 +148,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
       isValid = false;
     }
 
-    if (!age.trim()) {
+    if (age === " ") {
       setAgeError("Age is required");
       isValid = false;
     } else if (isNaN(age) || age < 1 || age > 120) {
@@ -196,7 +196,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
         address,
         age: parseInt(age),
         gender,
-        role,
+        role: role,
         updatedAt: new Date().toISOString(),
       };
 
@@ -451,29 +451,31 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
                   </div>
                 )}
 
-                {role && (
-                  <div className='bg-gray-50 rounded-lg p-3'>
+                <div>
+                  <div className='w-full text-sm bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-gray-500 cursor-not-allowed'>
                     <div className='flex justify-between items-center'>
                       <span className='text-xs font-medium text-gray-500 uppercase tracking-wide'>
                         Role
                       </span>
-                      <span className='text-sm text-gray-700 capitalize'>
-                        {role}
-                      </span>
-                    </div>
-                  </div>
-                )}
 
-                {role === "doctor" && degree && (
-                  <div className='bg-gray-50 rounded-lg p-3'>
-                    <div className='flex justify-between items-center'>
-                      <span className='text-xs font-medium text-gray-500 uppercase tracking-wide'>
-                        Degree
-                      </span>
-                      <span className='text-sm text-gray-700'>{degree}</span>
+                      {role
+                        ? role.charAt(0).toUpperCase() + role.slice(1)
+                        : "Not set"}
                     </div>
                   </div>
-                )}
+                  <p className='text-xs text-gray-500 mt-1'>
+                    Role cannot be changed after registration
+                  </p>
+                </div>
+                <div className='w-full text-sm bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-gray-500 '>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-xs font-medium text-gray-500 uppercase tracking-wide'>
+                      Fee
+                    </span>
+
+                    {fee}
+                  </div>
+                </div>
 
                 {address && (
                   <div className='bg-gray-50 rounded-lg p-3'>
