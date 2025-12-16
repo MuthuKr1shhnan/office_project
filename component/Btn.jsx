@@ -8,7 +8,7 @@ export default function Btn({
   className = "",
   ...props
 }) {
-  let baseStyles = "w-full text-sm font-medium py-2 rounded-lg transition";
+  let baseStyles = "text-sm font-medium py-2 rounded-lg transition";
 
   let variantStyles =
     variant === "primary"

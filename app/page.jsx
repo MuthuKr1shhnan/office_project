@@ -28,14 +28,37 @@ const loginSchema = Yup.object({
 
 const registerSchema = Yup.object({
   name: Yup.string()
-    .matches(/^[A-Za-z\s]+$/, "Name should contain only letters")
-    .required("Name is required"),
+    .required("Name is required")
+
+    .matches(/^[A-Za-z\s.]+$/, "Only letter are allowed")
+
+    .matches(/^[A-Za-z]/, "Name must start with a letter")
+
+    .matches(/[A-Za-z]$/, "Name must not end with a dot or space"),
+
   email: Yup.string()
     .email("Enter a valid email")
     .required("Email is required"),
   password: Yup.string()
-    .min(12, "Password must be 12+ characters")
-    .required("Password is required"),
+    .required("Password is required")
+
+    // no spaces allowed
+    .matches(/^\S+$/, "Password must not contain spaces")
+
+    // at least one letter
+    .matches(/[A-Za-z]/, "Password must contain at least one letter")
+
+    // at least one number
+    .matches(/\d/, "Password must contain at least one number")
+
+    // at least one symbol (optional)
+    .matches(/[^A-Za-z0-9]/, "Password must contain at least one symbol")
+
+    // length
+    .min(12, "Password must be at least 12 characters")
+
+    // symbols
+    .matches(/[^A-Za-z0-9]{1}/, "Password must contain only one symbol"),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password")], "Passwords do not match")
     .required("Confirm password is required"),
@@ -45,11 +68,15 @@ const registerSchema = Yup.object({
   fee: Yup.string().when("role", ([role], schema) => {
     return role === "doctor"
       ? schema
-          .test("is-valid-number", "Invalid amount! Enter valid number", function (value) {
-            if (!value) return false;
-            const num = Number(value);
-            return !isNaN(num);
-          })
+          .test(
+            "is-valid-number",
+            "Invalid amount! Enter valid number",
+            function (value) {
+              if (!value) return false;
+              const num = Number(value);
+              return !isNaN(num);
+            }
+          )
           .test("is-positive", "Fee must be positive", function (value) {
             if (!value) return false;
             const num = Number(value);
@@ -80,6 +107,7 @@ const registerSchema = Yup.object({
 const Page = () => {
   const router = useRouter();
   const [mode, setMode] = useState("login");
+  const [showPassword, setShowPassword] = useState(false);
 
   const loadUserDetails = async (user) => {
     if (!user?.uid) return null;
@@ -159,7 +187,7 @@ const Page = () => {
   };
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4'>
+    <div className='min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4'>
       <div className='max-w-md w-full bg-white rounded-2xl shadow-xl p-8'>
         <div className='text-center mb-8'>
           <h2 className='text-2xl font-bold text-gray-800 mb-2'>
@@ -181,7 +209,7 @@ const Page = () => {
             onSubmit={handleLoginSubmit}
           >
             {({ isSubmitting }) => (
-              <Form className='space-y-4' noValidate>
+              <Form className='space-y-4'>
                 <div>
                   <label className='block text-xs text-gray-600 mb-1'>
                     Email
@@ -203,12 +231,20 @@ const Page = () => {
                   <label className='block text-xs text-gray-600 mb-1'>
                     Password
                   </label>
-                  <Field
-                    type='password'
-                    name='password'
-                    className='w-full text-sm bg-white border rounded-lg px-3 py-2'
-                    placeholder='$Password123'
-                  />
+                  <div className='flex w-full gap-1'>
+                    <Field
+                      type={showPassword ? "text" : "password"}
+                      name='password'
+                      className='w-3/4 text-sm bg-white border rounded-lg px-3 py-2'
+                      placeholder='$Password123'
+                    />
+                    <Btn
+                      className='w-1/4 p-1'
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </Btn>
+                  </div>
                   <ErrorMessage
                     name='password'
                     component='div'
@@ -474,17 +510,25 @@ const Page = () => {
                   <label className='block text-xs text-gray-600 mb-1'>
                     Password *
                   </label>
-                  <Field
-                    type='password'
-                    name='password'
-                    value={values.password}
-                    className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.password && touched.password
-                        ? "border-red-300"
-                        : "border-gray-200"
-                    }`}
-                    placeholder='Choose a password'
-                  />
+                  <div className='flex gap-1 w-full'>
+                    <Field
+                      type={showPassword ? "text" : "password"}
+                      name='password'
+                      value={values.password}
+                      className={`w-3/4 text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors.password && touched.password
+                          ? "border-red-300"
+                          : "border-gray-200"
+                      }`}
+                      placeholder='Choose a password'
+                    />{" "}
+                    <Btn
+                      className='w-1/4 p-1'
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </Btn>
+                  </div>
                   <ErrorMessage
                     name='password'
                     component='div'
