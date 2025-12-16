@@ -6,7 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { parsePhoneNumber } from "libphonenumber-js";
+import { parsePhoneNumberWithError } from "libphonenumber-js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -42,20 +42,27 @@ const registerSchema = Yup.object({
   role: Yup.string()
     .oneOf(["patient", "doctor"], "Please select a role")
     .required("Please select a role"),
-  fee: Yup.number().when("role", {
-    is: "doctor",
-    then: (schema) =>
-      schema
-        .typeError("Invalid amount! Enter valid number")
-        .positive("Fee must be positive")
-        .required("Consultation fee is required"),
-    otherwise: (schema) => schema.notRequired(),
+  fee: Yup.string().when("role", ([role], schema) => {
+    return role === "doctor"
+      ? schema
+          .test("is-valid-number", "Invalid amount! Enter valid number", function (value) {
+            if (!value) return false;
+            const num = Number(value);
+            return !isNaN(num);
+          })
+          .test("is-positive", "Fee must be positive", function (value) {
+            if (!value) return false;
+            const num = Number(value);
+            return num > 0;
+          })
+          .required("Consultation fee is required")
+      : schema;
   }),
   phone: Yup.string()
     .test("is-valid-phone", "Enter a valid phone number", function (value) {
       if (!value) return false;
       try {
-        const phoneNumber = parsePhoneNumber(`+${value}`);
+        const phoneNumber = parsePhoneNumberWithError(`+${value}`);
         return phoneNumber.isValid();
       } catch (error) {
         return false;
@@ -63,10 +70,10 @@ const registerSchema = Yup.object({
     })
     .required("Phone number is required"),
   address: Yup.string().required("Address is required"),
-  degree: Yup.string().when("role", {
-    is: "doctor",
-    then: (schema) => schema.required("Degree is required for doctors"),
-    otherwise: (schema) => schema.notRequired(),
+  degree: Yup.string().when("role", ([role], schema) => {
+    return role === "doctor"
+      ? schema.required("Degree is required for doctors")
+      : schema;
   }),
 });
 
@@ -263,6 +270,7 @@ const Page = () => {
                   <Field
                     type='text'
                     name='name'
+                    value={values.name}
                     className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.name && touched.name
                         ? "border-red-300"
@@ -285,6 +293,7 @@ const Page = () => {
                   <Field
                     type='email'
                     name='email'
+                    value={values.email}
                     className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.email && touched.email
                         ? "border-red-300"
@@ -357,6 +366,7 @@ const Page = () => {
                     <Field
                       type='text'
                       name='fee'
+                      value={values.fee}
                       className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         errors.fee && touched.fee
                           ? "border-red-300"
@@ -380,7 +390,7 @@ const Page = () => {
 
                   <PhoneInput
                     country={"us"}
-                    value={values.phone || ""}
+                    value={values.phone}
                     onChange={(phone) => {
                       setFieldValue("phone", phone || "");
                     }}
@@ -418,6 +428,7 @@ const Page = () => {
                   <Field
                     as='textarea'
                     name='address'
+                    value={values.address}
                     className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
                       errors.address && touched.address
                         ? "border-red-300"
@@ -442,6 +453,7 @@ const Page = () => {
                     <Field
                       type='text'
                       name='degree'
+                      value={values.degree}
                       className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         errors.degree && touched.degree
                           ? "border-red-300"
@@ -465,6 +477,7 @@ const Page = () => {
                   <Field
                     type='password'
                     name='password'
+                    value={values.password}
                     className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.password && touched.password
                         ? "border-red-300"
@@ -487,6 +500,7 @@ const Page = () => {
                   <Field
                     type='password'
                     name='confirmPassword'
+                    value={values.confirmPassword}
                     className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.confirmPassword && touched.confirmPassword
                         ? "border-red-300"
