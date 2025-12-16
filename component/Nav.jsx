@@ -35,16 +35,17 @@ const menu = [
   },
 ];
 
-const login = {
+const account = {
   label: "My Account",
   link: "/profile",
 };
 
 export default function Nav() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpenDrawer, setIsOpenDrawer] = useState(false);
+
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [userRoleStatus, setUserRoleStatus] = useState(false);
   const router = useRouter();
 
   // 🔐 Check auth state and get user role
@@ -85,7 +86,7 @@ export default function Nav() {
   // Filter menu items based on user role
   const filteredMenu = menu.filter((item) => {
     if (!item.hideFor) return true;
-    return !item.hideFor.includes(userRole );
+    return !item.hideFor.includes(userRole);
   });
 
   return (
@@ -119,9 +120,9 @@ export default function Nav() {
           <Btn
             variant='primary'
             className='w-full'
-            onClick={() => setIsOpen(true)}
+            onClick={() => setIsOpenDrawer(true)}
           >
-            {login.label}
+            {account.label}
           </Btn>
         </div>
 
@@ -141,7 +142,7 @@ export default function Nav() {
 
       {/* Mobile Panel */}
       {isOpen && (
-        <div className='md:hidden border-t border-slate-200 bg-white'>
+        <div className='md:hidden border-t absolute w-full border-slate-200 bg-white'>
           <div className='px-4 py-3 space-y-2'>
             {filteredMenu.map((m, i) => (
               <Link
@@ -156,9 +157,9 @@ export default function Nav() {
             <div className='flex gap-2 pt-2'>
               <Btn
                 className='flex-1 px-3 py-2 rounded-lg border bg-[#FE5B63] text-center'
-                onClick={() => setIsOpen(true)}
+                onClick={() => setIsOpenDrawer(true)}
               >
-                {login.label}
+                {account.label}
               </Btn>
             </div>
           </div>
@@ -167,8 +168,8 @@ export default function Nav() {
 
       {/* ✅ Profile Drawer plugged in */}
       <ProfileDrawer
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        isOpen={isOpenDrawer}
+        onClose={() => setIsOpenDrawer(false)}
         user={user}
         onLogout={handleLogout}
       />
