@@ -240,6 +240,7 @@ const Page = () => {
                     />
                     <Btn
                       className='w-1/4 p-1'
+                      variant='second'
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? "Hide" : "Show"}
@@ -254,12 +255,12 @@ const Page = () => {
 
                 <Btn
                   type='submit'
-                  className='w-full py-3'
+                  className='w-full py-3 mt-2'
                   disabled={isSubmitting}
                 >
                   Sign in
                 </Btn>
-
+                <p className='text-gray-400 w-full text-center'>Or</p>
                 <Btn
                   type='button'
                   onClick={handleGoogleLogin}
@@ -524,6 +525,7 @@ const Page = () => {
                     />{" "}
                     <Btn
                       className='w-1/4 p-1'
+                      variant='second'
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? "Hide" : "Show"}
