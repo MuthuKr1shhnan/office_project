@@ -1,7 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, googleAuthProvider, db } from "../lib/firebase";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { parsePhoneNumber } from "libphonenumber-js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -13,277 +18,142 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import "./globals.css";
 import Btn from "@/component/Btn";
 
+// Validation Schemas
+const loginSchema = Yup.object({
+  email: Yup.string()
+    .email("Enter a valid email")
+    .required("Email is required"),
+  password: Yup.string().required("Password is required"),
+});
+
+const registerSchema = Yup.object({
+  name: Yup.string()
+    .matches(/^[A-Za-z\s]+$/, "Name should contain only letters")
+    .required("Name is required"),
+  email: Yup.string()
+    .email("Enter a valid email")
+    .required("Email is required"),
+  password: Yup.string()
+    .min(12, "Password must be 12+ characters")
+    .required("Password is required"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Passwords do not match")
+    .required("Confirm password is required"),
+  role: Yup.string()
+    .oneOf(["patient", "doctor"], "Please select a role")
+    .required("Please select a role"),
+  fee: Yup.number().when("role", {
+    is: "doctor",
+    then: (schema) =>
+      schema
+        .typeError("Invalid amount! Enter valid number")
+        .positive("Fee must be positive")
+        .required("Consultation fee is required"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  phone: Yup.string()
+    .test("is-valid-phone", "Enter a valid phone number", function (value) {
+      if (!value) return false;
+      try {
+        const phoneNumber = parsePhoneNumber(`+${value}`);
+        return phoneNumber.isValid();
+      } catch (error) {
+        return false;
+      }
+    })
+    .required("Phone number is required"),
+  address: Yup.string().required("Address is required"),
+  degree: Yup.string().when("role", {
+    is: "doctor",
+    then: (schema) => schema.required("Degree is required for doctors"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+});
+
 const Page = () => {
   const router = useRouter();
   const [mode, setMode] = useState("login");
 
-  // Login state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-
-  // Register state
-  const [regName, setRegName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regConfirm, setRegConfirm] = useState("");
-  const [regRole, setRegRole] = useState("");
-  const [regFee, setRegFee] = useState("");
-  const [regPhone, setRegPhone] = useState("");
-  const [regAddress, setRegAddress] = useState("");
-  const [regDegree, setRegDegree] = useState("");
-
-  // Register errors
-  const [regNameError, setRegNameError] = useState("");
-  const [regEmailError, setRegEmailError] = useState("");
-  const [regPasswordError, setRegPasswordError] = useState("");
-  const [regConfirmError, setRegConfirmError] = useState("");
-  const [regRoleError, setRegRoleError] = useState("");
-  const [regFeeError, setRegFeeError] = useState("");
-  const [regPhoneError, setRegPhoneError] = useState("");
-  const [regAddressError, setRegAddressError] = useState("");
-  const [regDegreeError, setRegDegreeError] = useState("");
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  // ----------------------------------------------------------------
-  // LOAD USER DETAILS FROM FIRESTORE
-  // ----------------------------------------------------------------
   const loadUserDetails = async (user) => {
     if (!user?.uid) return null;
 
     try {
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
-      console.log("User Data:", userDoc.data());
-
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-      
-        return userData;
-      } else {
-        console.log("No user document found");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error loading user data:", error);
+      return userDoc.exists() ? userDoc.data() : null;
+    } catch {
       return null;
     }
   };
 
-  // ----------------------------------------------------------------
-  // CHECK IF USER HAS ROLE
-  // ----------------------------------------------------------------
   const checkUserRole = async (user) => {
-    try {
-      const userData = await loadUserDetails(user);
+    const userData = await loadUserDetails(user);
 
-      if (userData && userData.role) {
-        // User already has a role, store it in localStorage and go to home
-        localStorage.setItem("userRole", userData.role);
-
-        // Store additional user details if needed
-
-        console.log("User details loaded:", userData);
-        router.push("/home");
-      } else {
-        // Google user without role - redirect to complete profile
-        alert("Please complete your profile by registering with your details");
-        await signOut(auth);
-      }
-    } catch (err) {
-      console.error("Error checking user role:", err);
-      alert("Error loading user data. Please try again.");
+    if (userData?.role) {
+      localStorage.setItem("userRole", userData.role);
+      router.push("/home");
+    } else {
+      alert("Please complete your profile");
+      await signOut(auth);
     }
   };
 
-  // ----------------------------------------------------------------
-  // GOOGLE LOGIN
-  // ----------------------------------------------------------------
   const handleGoogleLogin = async () => {
+    const result = await signInWithPopup(auth, googleAuthProvider);
+    await checkUserRole(result.user);
+  };
+
+  const handleLoginSubmit = async (values, { setSubmitting }) => {
     try {
-      const result = await signInWithPopup(auth, googleAuthProvider);
-      console.log("Google User:", result.user.displayName);
+      const result = await signInWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
       await checkUserRole(result.user);
-    } catch (err) {
-      console.error(err);
-      alert("Google login failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // ----------------------------------------------------------------
-  // LOGIN
-  // ----------------------------------------------------------------
-  const validateLogin = () => {
-    let valid = true;
-    setEmailError("");
-    setPasswordError("");
-
-    if (!email.trim()) {
-      setEmailError("Email is required.");
-      valid = false;
-    } else if (!emailRegex.test(email)) {
-      setEmailError("Enter a valid email.");
-      valid = false;
-    }
-
-    if (!password.trim()) {
-      setPasswordError("Password is required.");
-      valid = false;
-    }
-
-    return valid;
-  };
-
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateLogin()) return;
-
+  const handleRegisterSubmit = async (values, { setSubmitting }) => {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Logged in user:", result.user.displayName);
-      await checkUserRole(result.user);
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    }
-  };
-
-  // ----------------------------------------------------------------
-  // REGISTER
-  // ----------------------------------------------------------------
-  const clearRegisterErrors = () => {
-    setRegNameError("");
-    setRegEmailError("");
-    setRegPasswordError("");
-    setRegConfirmError("");
-    setRegRoleError("");
-    setRegFeeError("");
-    setRegPhoneError("");
-    setRegAddressError("");
-    setRegDegreeError("");
-  };
-
-  const validateRegister = () => {
-    clearRegisterErrors();
-    let valid = true;
-
-    if (!regName.trim()) {
-      setRegNameError("Name is required.");
-      valid = false;
-    }
-
-    if (!regEmail.trim()) {
-      setRegEmailError("Email is required.");
-      valid = false;
-    } else if (!emailRegex.test(regEmail)) {
-      setRegEmailError("Enter a valid email.");
-      valid = false;
-    }
-
-    if (!regPassword.trim()) {
-      setRegPasswordError("Password is required.");
-      valid = false;
-    } else if (regPassword.length < 6) {
-      setRegPasswordError("Password must be 6+ characters.");
-      valid = false;
-    }
-
-    if (regConfirm !== regPassword) {
-      setRegConfirmError("Passwords do not match.");
-      valid = false;
-    }
-
-    if (!regRole) {
-      setRegRoleError("Please select a role.");
-      valid = false;
-    }
-
-    if (!regPhone.trim()) {
-      setRegPhoneError("Phone number is required.");
-      valid = false;
-    } else if (!/^\d{10}$/.test(regPhone.replace(/[\s-]/g, ""))) {
-      setRegPhoneError("Enter a valid 10-digit phone number.");
-      valid = false;
-    }
-
-    if (!regAddress.trim()) {
-      setRegAddressError("Address is required.");
-      valid = false;
-    }
-    if (isNaN(regFee)) {
-      setRegFeeError("Invalid Amount!, Enter valid number.");
-      valid = false;
-    }
-    if (regRole === "doctor" && !regDegree.trim()) {
-      setRegDegreeError("Degree is required for doctors.");
-      valid = false;
-    }
-
-    return valid;
-  };
-
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateRegister()) return;
-
-    try {
-      // Create user account
       const result = await createUserWithEmailAndPassword(
         auth,
-        regEmail,
-        regPassword
+        values.email,
+        values.password
       );
 
-      // Update profile with name
       await updateProfile(result.user, {
-        displayName: regName,
+        displayName: values.name,
       });
 
-      // Prepare user data
       const userData = {
         uid: result.user.uid,
-        role: regRole,
-        fee: regFee,
-        email: regEmail,
-        displayName: regName,
-        phoneNumber: regPhone,
-        address: regAddress,
+        role: values.role,
+        fee: values.fee || "",
+        email: values.email,
+        displayName: values.name,
+        phoneNumber: values.phone,
+        address: values.address,
         createdAt: new Date().toISOString(),
       };
 
-      // Add degree only if doctor
-      if (regRole === "doctor") {
-        userData.degree = regDegree;
+      if (values.role === "doctor") {
+        userData.degree = values.degree;
       }
 
-      // Save to Firestore
       await setDoc(doc(db, "users", result.user.uid), userData);
-
-      // Store in localStorage
-      localStorage.setItem("userRole", regRole);
-
-      if (regRole === "doctor") {
-        localStorage.setItem("userDegree", regDegree);
-      }
-
-      console.log("User registered successfully:", userData);
-      alert("Registration successful!");
+      localStorage.setItem("userRole", values.role);
       router.push("/home");
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
- 
-  // ----------------------------------------------------------------
-  // UI - LOGIN/REGISTER
-  // ----------------------------------------------------------------
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4'>
       <div className='max-w-md w-full bg-white rounded-2xl shadow-xl p-8'>
-        {/* HEADER */}
         <div className='text-center mb-8'>
           <h2 className='text-2xl font-bold text-gray-800 mb-2'>
             {mode === "login" ? "Welcome back" : "Create your account"}
@@ -295,289 +165,359 @@ const Page = () => {
           </p>
         </div>
 
-        {/* LOGIN FORM */}
         {mode === "login" ? (
-          <form onSubmit={handleLoginSubmit} className='space-y-4'>
-            {/* EMAIL */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-1'>Email</label>
-              <input
-                type='email'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  emailError ? "border-red-300" : "border-gray-200"
-                }`}
-                placeholder='you@example.com'
-              />
-              {emailError && (
-                <div className='text-xs text-red-600 mt-1'>{emailError}</div>
-              )}
-            </div>
-
-            {/* PASSWORD */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-1'>
-                Password
-              </label>
-              <input
-                type='password'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  passwordError ? "border-red-300" : "border-gray-200"
-                }`}
-                placeholder='••••••••'
-              />
-              {passwordError && (
-                <div className='text-xs text-red-600 mt-1'>{passwordError}</div>
-              )}
-            </div>
-
-            <Btn variant='primary' type='submit' className='w-full py-3'>
-              Sign in
-            </Btn>
-
-            {/* OR */}
-            <div className='relative flex items-center justify-center my-4'>
-              <div className='border-t border-gray-200 w-full' />
-              <span className='absolute bg-white px-4 text-xs text-gray-500'>
-                or
-              </span>
-            </div>
-
-            <Btn
-              variant='second'
-              type='button'
-              onClick={handleGoogleLogin}
-              className='w-full py-3'
-            >
-              Sign in with Google
-            </Btn>
-          </form>
-        ) : (
-          // REGISTER FORM
-          <form onSubmit={handleRegisterSubmit} className='space-y-4'>
-            {/* Name */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-1'>
-                Full name *
-              </label>
-              <input
-                type='text'
-                value={regName}
-                onChange={(e) => setRegName(e.target.value)}
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  regNameError ? "border-red-300" : "border-gray-200"
-                }`}
-                placeholder='Your full name'
-              />
-              {regNameError && (
-                <div className='text-xs text-red-600 mt-1'>{regNameError}</div>
-              )}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-1'>
-                Email *
-              </label>
-              <input
-                type='email'
-                value={regEmail}
-                onChange={(e) => setRegEmail(e.target.value)}
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  regEmailError ? "border-red-300" : "border-gray-200"
-                }`}
-                placeholder='you@example.com'
-              />
-              {regEmailError && (
-                <div className='text-xs text-red-600 mt-1'>{regEmailError}</div>
-              )}
-            </div>
-
-            {/* Role Selection */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-2'>
-                I am a *
-              </label>
-              <div className='flex gap-3'>
-                <label
-                  className={`flex-1 flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    regRole === "patient"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <input
-                    type='radio'
-                    name='role'
-                    value='patient'
-                    checked={regRole === "patient"}
-                    onChange={(e) => setRegRole(e.target.value)}
-                    className='sr-only'
+          <Formik
+            initialValues={{ email: "", password: "" }}
+            validationSchema={loginSchema}
+            validateOnChange
+            validateOnBlur
+            onSubmit={handleLoginSubmit}
+          >
+            {({ isSubmitting }) => (
+              <Form className='space-y-4' noValidate>
+                <div>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    Email
+                  </label>
+                  <Field
+                    type='email'
+                    name='email'
+                    className='w-full text-sm bg-white border rounded-lg px-3 py-2'
+                    placeholder='you@example.com'
                   />
-                  <span className='text-sm font-medium text-gray-700'>
-                    Patient
-                  </span>
-                </label>
-
-                <label
-                  className={`flex-1 flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    regRole === "doctor"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <input
-                    type='radio'
-                    name='role'
-                    value='doctor'
-                    checked={regRole === "doctor"}
-                    onChange={(e) => setRegRole(e.target.value)}
-                    className='sr-only'
+                  <ErrorMessage
+                    name='email'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
                   />
-                  <span className='text-sm font-medium text-gray-700'>
-                    Doctor
-                  </span>
-                </label>
-              </div>
-              {regRoleError && (
-                <div className='text-xs text-red-600 mt-1'>{regRoleError}</div>
-              )}
-            </div>
-            {regRole === "doctor" && (
-              <div>
-                <label className='block text-xs text-gray-600 mb-1'>
-                  Consultation Fee &#8377;
-                </label>
-                <input
-                  type='text'
-                  value={regFee}
-                  onChange={(e) => setRegFee(e.target.value)}
-                  className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    regFeeError ? "border-red-300" : "border-gray-200"
-                  }`}
-                  placeholder='you@example.com'
-                />
-                {regFeeError && (
-                  <div className='text-xs text-red-600 mt-1'>{regFeeError}</div>
-                )}
-              </div>
-            )}
-
-            {/* Phone Number */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-1'>
-                Phone Number *
-              </label>
-              <input
-                type='tel'
-                value={regPhone}
-                onChange={(e) => setRegPhone(e.target.value)}
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  regPhoneError ? "border-red-300" : "border-gray-200"
-                }`}
-                placeholder='1234567890'
-              />
-              {regPhoneError && (
-                <div className='text-xs text-red-600 mt-1'>{regPhoneError}</div>
-              )}
-            </div>
-
-            {/* Address */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-1'>
-                Address *
-              </label>
-              <textarea
-                value={regAddress}
-                onChange={(e) => setRegAddress(e.target.value)}
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                  regAddressError ? "border-red-300" : "border-gray-200"
-                }`}
-                placeholder='Your complete address'
-                rows='2'
-              />
-              {regAddressError && (
-                <div className='text-xs text-red-600 mt-1'>
-                  {regAddressError}
                 </div>
-              )}
-            </div>
 
-            {/* Degree (only for doctors) */}
-            {regRole === "doctor" && (
-              <div>
-                <label className='block text-xs text-gray-600 mb-1'>
-                  Degree *
-                </label>
-                <input
-                  type='text'
-                  value={regDegree}
-                  onChange={(e) => setRegDegree(e.target.value)}
-                  className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    regDegreeError ? "border-red-300" : "border-gray-200"
-                  }`}
-                  placeholder='MBBS, MD, etc.'
-                />
-                {regDegreeError && (
-                  <div className='text-xs text-red-600 mt-1'>
-                    {regDegreeError}
+                <div>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    Password
+                  </label>
+                  <Field
+                    type='password'
+                    name='password'
+                    className='w-full text-sm bg-white border rounded-lg px-3 py-2'
+                    placeholder='$Password123'
+                  />
+                  <ErrorMessage
+                    name='password'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
+                  />
+                </div>
+
+                <Btn
+                  type='submit'
+                  className='w-full py-3'
+                  disabled={isSubmitting}
+                >
+                  Sign in
+                </Btn>
+
+                <Btn
+                  type='button'
+                  onClick={handleGoogleLogin}
+                  className='w-full py-3'
+                >
+                  Sign in with Google
+                </Btn>
+              </Form>
+            )}
+          </Formik>
+        ) : (
+          <Formik
+            initialValues={{
+              name: "",
+              email: "",
+              password: "",
+              confirmPassword: "",
+              role: "",
+              fee: "",
+              phone: "",
+              address: "",
+              degree: "",
+            }}
+            validationSchema={registerSchema}
+            validateOnChange
+            validateOnBlur
+            onSubmit={handleRegisterSubmit}
+          >
+            {({
+              isSubmitting,
+              errors,
+              touched,
+              values,
+              setFieldValue,
+              isValid,
+              dirty,
+            }) => (
+              <Form className='space-y-4'>
+                {/* Name */}
+                <div>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    Full name *
+                  </label>
+                  <Field
+                    type='text'
+                    name='name'
+                    className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.name && touched.name
+                        ? "border-red-300"
+                        : "border-gray-200"
+                    }`}
+                    placeholder='Your full name'
+                  />
+                  <ErrorMessage
+                    name='name'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    Email *
+                  </label>
+                  <Field
+                    type='email'
+                    name='email'
+                    className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.email && touched.email
+                        ? "border-red-300"
+                        : "border-gray-200"
+                    }`}
+                    placeholder='you@example.com'
+                  />
+                  <ErrorMessage
+                    name='email'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
+                  />
+                </div>
+
+                {/* Role Selection */}
+                <div>
+                  <label className='block text-xs text-gray-600 mb-2'>
+                    I am a *
+                  </label>
+                  <div className='flex gap-3'>
+                    <label
+                      className={`flex-1 flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        values.role === "patient"
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      <Field
+                        type='radio'
+                        name='role'
+                        value='patient'
+                        className='sr-only'
+                      />
+                      <span className='text-sm font-medium text-gray-700'>
+                        Patient
+                      </span>
+                    </label>
+
+                    <label
+                      className={`flex-1 flex items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        values.role === "doctor"
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      <Field
+                        type='radio'
+                        name='role'
+                        value='doctor'
+                        className='sr-only'
+                      />
+                      <span className='text-sm font-medium text-gray-700'>
+                        Doctor
+                      </span>
+                    </label>
+                  </div>
+                  <ErrorMessage
+                    name='role'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
+                  />
+                </div>
+
+                {/* Consultation Fee (only for doctors) */}
+                {values.role === "doctor" && (
+                  <div>
+                    <label className='block text-xs text-gray-600 mb-1'>
+                      Consultation Fee &#8377; *
+                    </label>
+                    <Field
+                      type='text'
+                      name='fee'
+                      className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors.fee && touched.fee
+                          ? "border-red-300"
+                          : "border-gray-200"
+                      }`}
+                      placeholder='500'
+                    />
+                    <ErrorMessage
+                      name='fee'
+                      component='div'
+                      className='text-xs text-red-600 mt-1'
+                    />
                   </div>
                 )}
-              </div>
+
+                {/* Phone Number */}
+                <div>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    Phone Number *
+                  </label>
+
+                  <PhoneInput
+                    country={"us"}
+                    value={values.phone || ""}
+                    onChange={(phone) => {
+                      setFieldValue("phone", phone || "");
+                    }}
+                    inputProps={{
+                      name: "phone",
+                      required: true,
+                      className: `!w-full !h-10 !pl-12 !pr-3 !py-2 !text-gray-700 !border !border-gray-300 !rounded-md focus:!outline-none focus:!ring-2 focus:!ring-blue-500 focus:!border-blue-500  ${
+                        errors.phone && touched.phone
+                          ? "!border-red-300"
+                          : "!border-gray-200"
+                      }`,
+                    }}
+                    containerClass='!w-full'
+                    buttonClass={`!absolute !top-0 !bottom-0 !left-0 !w-12 !h-full !flex !items-center !justify-center !bg-gray-50 hover:!bg-gray-100 !border-r !border-gray-300 !rounded-l-md ${
+                      errors.phone && touched.phone
+                        ? "!border-red-300"
+                        : "!border-gray-200"
+                    }`}
+                    dropdownClass='!absolute !left-0 !mt-1 !w-64 !bg-white !shadow-lg !rounded-md !max-h-60 !overflow-y-auto !z-50 !border !border-gray-200'
+                    searchClass='!w-full !border !border-gray-300 !px-3 !py-2 !rounded-md focus:!outline-none focus:!ring-2 focus:!ring-blue-500 focus:!border-blue-500 !m-2'
+                  />
+
+                  <ErrorMessage
+                    name='phone'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
+                  />
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    Address *
+                  </label>
+                  <Field
+                    as='textarea'
+                    name='address'
+                    className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                      errors.address && touched.address
+                        ? "border-red-300"
+                        : "border-gray-200"
+                    }`}
+                    placeholder='Your complete address'
+                    rows='2'
+                  />
+                  <ErrorMessage
+                    name='address'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
+                  />
+                </div>
+
+                {/* Degree (only for doctors) */}
+                {values.role === "doctor" && (
+                  <div>
+                    <label className='block text-xs text-gray-600 mb-1'>
+                      Degree *
+                    </label>
+                    <Field
+                      type='text'
+                      name='degree'
+                      className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors.degree && touched.degree
+                          ? "border-red-300"
+                          : "border-gray-200"
+                      }`}
+                      placeholder='MBBS, MD, etc.'
+                    />
+                    <ErrorMessage
+                      name='degree'
+                      component='div'
+                      className='text-xs text-red-600 mt-1'
+                    />
+                  </div>
+                )}
+
+                {/* Password */}
+                <div>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    Password *
+                  </label>
+                  <Field
+                    type='password'
+                    name='password'
+                    className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.password && touched.password
+                        ? "border-red-300"
+                        : "border-gray-200"
+                    }`}
+                    placeholder='Choose a password'
+                  />
+                  <ErrorMessage
+                    name='password'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
+                  />
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    Confirm password *
+                  </label>
+                  <Field
+                    type='password'
+                    name='confirmPassword'
+                    className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.confirmPassword && touched.confirmPassword
+                        ? "border-red-300"
+                        : "border-gray-200"
+                    }`}
+                    placeholder='Repeat your password'
+                  />
+                  <ErrorMessage
+                    name='confirmPassword'
+                    component='div'
+                    className='text-xs text-red-600 mt-1'
+                  />
+                </div>
+
+                <Btn
+                  variant='primary'
+                  type='submit'
+                  className={`w-full py-3 mt-6 ${
+                    !isValid || !dirty || isSubmitting
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  disabled={!isValid || !dirty || isSubmitting}
+                >
+                  {isSubmitting ? "Creating account..." : "Create account"}
+                </Btn>
+              </Form>
             )}
-
-            {/* Password */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-1'>
-                Password *
-              </label>
-              <input
-                type='password'
-                value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  regPasswordError ? "border-red-300" : "border-gray-200"
-                }`}
-                placeholder='Choose a password'
-              />
-              {regPasswordError && (
-                <div className='text-xs text-red-600 mt-1'>
-                  {regPasswordError}
-                </div>
-              )}
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label className='block text-xs text-gray-600 mb-1'>
-                Confirm password *
-              </label>
-              <input
-                type='password'
-                value={regConfirm}
-                onChange={(e) => setRegConfirm(e.target.value)}
-                className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  regConfirmError ? "border-red-300" : "border-gray-200"
-                }`}
-                placeholder='Repeat your password'
-              />
-              {regConfirmError && (
-                <div className='text-xs text-red-600 mt-1'>
-                  {regConfirmError}
-                </div>
-              )}
-            </div>
-
-            <Btn variant='primary' type='submit' className='w-full py-3 mt-6'>
-              Create account
-            </Btn>
-          </form>
+          </Formik>
         )}
 
-        {/* Footer */}
         <div className='text-center mt-6 text-sm text-gray-600'>
           {mode === "login"
             ? "Don't have an account?"
