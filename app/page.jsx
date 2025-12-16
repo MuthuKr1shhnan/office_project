@@ -34,11 +34,18 @@ const registerSchema = Yup.object({
 
     .matches(/^[A-Za-z]/, "Name must start with a letter")
 
-    .matches(/[A-Za-z]$/, "Name must not end with a dot or space"),
+    .matches(/[A-Za-z]$/, "Name must not end with a dot or any symbols"),
 
   email: Yup.string()
+    .required("Email is required")
+    .matches(/^\S+$/, "Email should not contain empty space!")
     .email("Enter a valid email")
-    .required("Email is required"),
+
+    .matches(
+      /(.com)$/,
+      "Email domain is invalid. Please use @gmail.com or @yahoo.com."
+    ),
+
   password: Yup.string()
     .required("Password is required")
 
