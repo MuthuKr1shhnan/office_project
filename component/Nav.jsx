@@ -78,6 +78,7 @@ export default function Nav() {
     try {
       await signOut(auth);
       router.push("/");
+      localStorage.removeItem("isLoggedIn");
     } catch (err) {
       console.error("Logout error:", err);
     }

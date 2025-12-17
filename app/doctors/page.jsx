@@ -12,13 +12,14 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  LocationIcon as location,
+  TickIcon as tick,
+  PhoneIcon as phone,
+  DegreeIcon as degree,
+} from "../../assets/icon";
 
-// Assets
 import heroImage from "../../assets/heroimage.png";
-import degree from "../../assets/degree.svg";
-import location from "../../assets/location.svg";
-import phone from "../../assets/phone.svg";
-import tick from "../../assets/tick.svg";
 
 const auth = getAuth();
 
@@ -42,7 +43,7 @@ export default function DoctorsPage() {
         const q = query(usersCollectionRef, where("role", "==", "doctor"));
         const snap = await getDocs(q);
         const list = snap.docs.map((doc) => ({
-          id: doc.id,           // Firestore doc id (not necessarily the auth UID)
+          id: doc.id, // Firestore doc id (not necessarily the auth UID)
           ...doc.data(),
         }));
         setDoctors(list);
@@ -66,11 +67,12 @@ export default function DoctorsPage() {
       // Choose the correct doctor UID field:
       // Prefer doctor.uid (auth UID). If not present, use doctor.userId.
       // If neither exists, fall back to doctor.id only if you also store doctorId as doc.id consistently everywhere.
-      const doctorUid =
-        doctor.uid || doctor.userId || doctor.id; // ensure your doctors have uid/userId saved
+      const doctorUid = doctor.uid || doctor.userId || doctor.id; // ensure your doctors have uid/userId saved
 
       if (!doctorUid) {
-        alert("Doctor UID is missing. Ensure doctor documents include uid/userId.");
+        alert(
+          "Doctor UID is missing. Ensure doctor documents include uid/userId."
+        );
         return;
       }
 
@@ -102,30 +104,30 @@ export default function DoctorsPage() {
 
   if (loading) {
     return (
-      <div className="w-full mt-auto h-full justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4">
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-500">Loading doctors...</p>
+      <div className='w-full mt-auto h-full justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4'>
+        <div className='flex flex-col items-center justify-center py-20'>
+          <div className='w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4'></div>
+          <p className='text-gray-500'>Loading doctors...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full mt-auto h-full justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4">
-      <div className="w-3/4">
+    <div className='w-full mt-auto justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4 '>
+      <div className='w-3/4'>
         <input
-          type="text"
-          placeholder="Search by Name, Phone, Degree or Location..."
+          type='text'
+          placeholder='Search by Name, Phone, Degree or Location...'
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500'
         />
       </div>
 
       {filteredDoctors.length === 0 && (
-        <div className="text-center py-10">
-          <p className="text-gray-500 text-lg">
+        <div className='text-center py-10'>
+          <p className='text-gray-500 text-lg'>
             {search
               ? "No doctors found matching your search."
               : "No doctors available at the moment."}
@@ -136,70 +138,78 @@ export default function DoctorsPage() {
       {filteredDoctors.map((doctor) => (
         <div
           key={doctor.id}
-          className="w-3/4 bg-white rounded-xl shadow-md p-4 flex gap-4 items-start"
+          className='w-3/4 bg-white rounded-xl shadow-md p-4 flex gap-4 items-start'
         >
           <Image
             src={doctor.photoURL || heroImage}
             alt={doctor.displayName || "Doctor"}
             width={64}
             height={64}
-            className="w-16 h-16 rounded-lg object-cover bg-gray-200"
+            className='w-16 h-16 rounded-lg object-cover'
           />
 
-          <div className="flex-1">
-            <div className="flex items-center gap-1">
-              <h2 className="font-semibold text-lg">
+          <div className='flex-1'>
+            <div className='flex items-center gap-1'>
+              <h2 className='font-semibold text-lg'>
                 {doctor.displayName || "Doctor"}
               </h2>
               {doctor.isVerified && (
-                <Image src={tick} alt="verified" width={16} height={16} className="w-4 h-4" />
+                <Image
+                  src={tick}
+                  alt='verified'
+                  width={16}
+                  height={16}
+                  className='w-4 h-4'
+                />
               )}
             </div>
 
             {doctor.degree && (
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                <Image src={degree} alt="degree" width={16} height={16} />
+              <div className='flex items-center gap-2 mt-1 text-sm text-gray-600'>
+                <Image src={degree} alt='degree' width={16} height={16} />
                 <span>{doctor.degree}</span>
               </div>
             )}
 
             {doctor.address && (
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                <Image src={location} alt="location" width={16} height={16} />
+              <div className='flex items-center gap-2 mt-1 text-sm text-gray-600'>
+                <Image src={location} alt='location' width={16} height={16} />
                 <span>{doctor.address}</span>
               </div>
             )}
 
             {doctor.phoneNumber && (
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                <Image src={phone} alt="phone" width={16} height={16} />
+              <div className='flex items-center gap-2 mt-1 text-sm text-gray-600'>
+                <Image src={phone} alt='phone' width={16} height={16} />
                 <span>{doctor.phoneNumber}</span>
               </div>
             )}
 
             {doctor.age && (
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                <span className="text-gray-500">Age:</span>
+              <div className='flex items-center gap-2 mt-1 text-sm text-gray-600'>
+                <span className='text-gray-500'>Age:</span>
                 <span>{doctor.age} years</span>
               </div>
             )}
 
             {doctor.gender && (
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                <span className="text-gray-500">Gender:</span>
-                <span className="capitalize">{doctor.gender}</span>
+              <div className='flex items-center gap-2 mt-1 text-sm text-gray-600'>
+                <span className='text-gray-500'>Gender:</span>
+                <span className='capitalize'>{doctor.gender}</span>
               </div>
             )}
 
             {doctor.price && (
-              <div className="flex items-center mt-3">
-                <div className="text-red-500 font-bold text-lg">Rs {doctor.price}/-</div>
+              <div className='flex items-center mt-3'>
+                <div className='text-red-500 font-bold text-lg'>
+                  Rs {doctor.price}/-
+                </div>
               </div>
             )}
 
             <button
               onClick={() => sendRequest(doctor)}
-              className="mt-3 w-full bg-[#FE5B63] text-white py-2 rounded-lg text-sm font-medium hover:bg-[#e5525a] transition-colors"
+              className='mt-3 w-full bg-[#FE5B63] text-white py-2 rounded-lg text-sm font-medium hover:bg-[#e5525a] transition-colors'
             >
               Send Request
             </button>

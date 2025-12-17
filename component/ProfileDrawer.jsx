@@ -97,7 +97,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
           setAge(userData.age || "");
           setGender(userData.gender || "");
           setRole(userData.role || "");
-          
+
           localStorage.setItem("userRole", role);
           setDegree(userData.degree || "");
         }
@@ -292,6 +292,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
   const handleDeleteAccount = async () => {
     try {
       const currentUser = auth.currentUser;
+      localStorage.removeItem("isLoggedIn")
 
       // Delete Firestore document first
       const userDocRef = doc(db, "users", user.uid);
@@ -421,7 +422,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
                         Phone
                       </span>
                       <span className='text-sm text-gray-700'>
-                        {phoneNumber}
+                        +{phoneNumber}
                       </span>
                     </div>
                   </div>
