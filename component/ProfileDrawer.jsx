@@ -292,7 +292,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
   const handleDeleteAccount = async () => {
     try {
       const currentUser = auth.currentUser;
-      localStorage.removeItem("isLoggedIn")
+      localStorage.removeItem("isLoggedIn");
 
       // Delete Firestore document first
       const userDocRef = doc(db, "users", user.uid);
@@ -381,7 +381,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
         <div className='p-6 flex flex-col items-center'>
           {/* Profile Image */}
           <div className='relative'>
-            <div className='absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full blur-sm opacity-75'></div>
+            <div className='absolute inset-0 bg-linear-to-tr from-blue-500 to-purple-500 rounded-full blur-sm opacity-75'></div>
             <div className='relative h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-lg'>
               <Image
                 src={"/dummy.jpg"}
@@ -634,59 +634,6 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
                   )}
                 </div>
 
-                {/* Role */}
-                <div>
-                  <label className='block text-xs text-gray-600 mb-1'>
-                    Role
-                  </label>
-                  <div className='flex gap-4'>
-                    {["patient", "doctor"].map((r) => (
-                      <div
-                        key={r}
-                        onClick={() => setRole(r)}
-                        className='flex items-center gap-2 cursor-pointer select-none'
-                      >
-                        <span
-                          className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                            role === r ? "border-blue-500" : "border-gray-300"
-                          }`}
-                        >
-                          {role === r && (
-                            <span className='h-2 w-2 rounded-full bg-blue-500'></span>
-                          )}
-                        </span>
-                        <span className='text-sm text-gray-700 capitalize'>
-                          {r}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {roleError && (
-                    <p className='text-xs text-red-600 mt-1'>{roleError}</p>
-                  )}
-                </div>
-
-                {/* Degree (only for doctors) */}
-                {role === "doctor" && (
-                  <div>
-                    <label className='block text-xs text-gray-600 mb-1'>
-                      Degree
-                    </label>
-                    <input
-                      type='text'
-                      value={degree}
-                      onChange={(e) => setDegree(e.target.value)}
-                      className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        degreeError ? "border-red-300" : "border-gray-200"
-                      }`}
-                      placeholder='MBBS, MD, etc.'
-                    />
-                    {degreeError && (
-                      <p className='text-xs text-red-600 mt-1'>{degreeError}</p>
-                    )}
-                  </div>
-                )}
-
                 {/* Address */}
                 <div>
                   <label className='block text-xs text-gray-600 mb-1'>
@@ -731,7 +678,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className='fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4'>
+        <div className='fixed inset-0 bg-black/60 backdrop-blur-sm z-60 flex items-center justify-center p-4'>
           <div className='bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all'>
             <div className='flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4'>
               <svg

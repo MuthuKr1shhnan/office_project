@@ -178,7 +178,7 @@ const Login = ({ onLoginSuccess, onGoogleLogin }) => {
             className='w-full py-3 mt-2'
             disabled={isSubmitting}
           >
-            Sign in
+            {isSubmitting ? "Signing in..." : "Sign in"}
           </Btn>
           <p className='text-gray-400 w-full text-center'>Or</p>
           <Btn type='button' onClick={onGoogleLogin} className='w-full py-3'>
@@ -438,7 +438,7 @@ const Register = ({ onRegisterSuccess }) => {
             </label>
             <div className='flex gap-1 w-full'>
               <div
-                className={`flex items-center    focus-within:ring-2 focus-within:ring-blue-500 w-full border rounded-lg bg-white px-1 py-1 ${
+                className={`flex items-center focus-within:ring-2 focus-within:ring-blue-500 w-full border rounded-lg bg-white px-1 py-1 ${
                   errors.password && touched.password
                     ? "border-red-300"
                     : "border-gray-200"
@@ -449,7 +449,7 @@ const Register = ({ onRegisterSuccess }) => {
                   name='password'
                   autoComplete='new-password'
                   value={values.password}
-                  className={`w-full text-smrounded-lg px-3  outline-none `}
+                  className='w-full text-sm rounded-lg px-3 outline-none'
                   placeholder='Choose a password'
                 />
                 <button
@@ -469,7 +469,7 @@ const Register = ({ onRegisterSuccess }) => {
                     />
                   ) : (
                     <Image
-                      alt='eye-close'
+                      alt='eye-open'
                       width={24}
                       height={24}
                       src={EyeOpenIcon}
@@ -534,6 +534,7 @@ const Register = ({ onRegisterSuccess }) => {
 const Page = () => {
   const router = useRouter();
   const [mode, setMode] = useState("login");
+  const [error, setError] = useState("");
 
   const loadUserDetails = async (user) => {
     if (!user?.uid) return null;
@@ -542,37 +543,53 @@ const Page = () => {
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
       return userDoc.exists() ? userDoc.data() : null;
-    } catch {
+    } catch (error) {
+      console.error("Error loading user details:", error);
       return null;
     }
   };
 
   const checkUserRole = async (user) => {
-    const userData = await loadUserDetails(user);
+    try {
+      const userData = await loadUserDetails(user);
 
-    if (userData?.role) {
-      localStorage.setItem("userRole", userData.role);
-      localStorage.setItem("isLoggedIn", true);
-      router.push("/home");
-    } else {
-      alert("Please complete your profile");
-      await signOut(auth);
+      if (userData?.role) {
+        localStorage.setItem("userRole", userData.role);
+        localStorage.setItem("isLoggedIn", "true");
+        router.push("/home");
+      } else {
+        setError("Please complete your profile");
+        await signOut(auth);
+      }
+    } catch (error) {
+      console.error("Error checking user role:", error);
+      setError("An error occurred. Please try again.");
     }
   };
 
   const handleGoogleLogin = async () => {
-    const result = await signInWithPopup(auth, googleAuthProvider);
-    await checkUserRole(result.user);
+    try {
+      setError("");
+      const result = await signInWithPopup(auth, googleAuthProvider);
+      await checkUserRole(result.user);
+    } catch (error) {
+      console.error("Google login error:", error);
+      setError(error.message || "Google login failed");
+    }
   };
 
   const handleLoginSubmit = async (values, { setSubmitting }) => {
     try {
+      setError("");
       const result = await signInWithEmailAndPassword(
         auth,
         values.emailLogin,
         values.passwordLogin
       );
       await checkUserRole(result.user);
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error.message || "Login failed");
     } finally {
       setSubmitting(false);
     }
@@ -580,6 +597,7 @@ const Page = () => {
 
   const handleRegisterSubmit = async (values, { setSubmitting }) => {
     try {
+      setError("");
       const result = await createUserWithEmailAndPassword(
         auth,
         values.email,
@@ -606,9 +624,14 @@ const Page = () => {
       }
 
       await setDoc(doc(db, "users", result.user.uid), userData);
+      
       localStorage.setItem("userRole", values.role);
-      localStorage.setItem("isLoggedIn", true);
+      localStorage.setItem("isLoggedIn", "true");
+      
       router.push("/home");
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError(error.message || "Registration failed");
     } finally {
       setSubmitting(false);
     }
@@ -628,9 +651,14 @@ const Page = () => {
           </p>
         </div>
 
+        {error && (
+          <div className='mb-4 p-3 bg-red-50 border border-red-200 rounded-lg'>
+            <p className='text-sm text-red-600'>{error}</p>
+          </div>
+        )}
+
         {mode === "login" ? (
           <Login
-            onSwitchToRegister={() => setMode("register")}
             onLoginSuccess={handleLoginSubmit}
             onGoogleLogin={handleGoogleLogin}
           />
@@ -643,7 +671,10 @@ const Page = () => {
             ? "Don't have an account?"
             : "Already have an account?"}
           <button
-            onClick={() => setMode(mode === "login" ? "register" : "login")}
+            onClick={() => {
+              setMode(mode === "login" ? "register" : "login");
+              setError("");
+            }}
             className='ml-1 text-sm font-medium text-[#FE5B63] hover:underline'
           >
             {mode === "login" ? "Register here!" : "Sign in"}
