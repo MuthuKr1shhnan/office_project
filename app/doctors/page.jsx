@@ -10,6 +10,8 @@ import {
   where,
   addDoc,
   serverTimestamp,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
@@ -29,7 +31,10 @@ export default function DoctorsPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
-  // doctorId -> status
+  // Logged-in user profile from Firestore
+  const [userProfile, setUserProfile] = useState(null);
+
+  // doctorId -> request status
   const [requestStatus, setRequestStatus] = useState({});
 
   const usersCollectionRef = collection(db, "users");
@@ -39,6 +44,24 @@ export default function DoctorsPage() {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
   }, []);
+
+  /* ---------------- LOAD USER PROFILE ---------------- */
+  useEffect(() => {
+    if (!user) return;
+
+    const loadUserProfile = async () => {
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) {
+          setUserProfile(snap.data());
+        }
+      } catch (err) {
+        console.error("Failed to load user profile:", err);
+      }
+    };
+
+    loadUserProfile();
+  }, [user]);
 
   /* ---------------- FETCH DOCTORS ---------------- */
   useEffect(() => {
@@ -109,8 +132,12 @@ export default function DoctorsPage() {
       await addDoc(collection(db, "consultations"), {
         doctorId: doctorUid,
         patientId: user.uid,
-        patientName: user.displayName || "Anonymous",
-        patientEmail: user.email || "",
+
+        patientName:
+          userProfile?.displayName || user.displayName || "Anonymous",
+        patientEmail: userProfile?.email || user.email || "",
+        patientPhone: userProfile?.phoneNumber || "",
+
         status: "pending",
         createdAt: serverTimestamp(),
       });
@@ -137,6 +164,7 @@ export default function DoctorsPage() {
     );
   });
 
+  /* ---------------- LOADING ---------------- */
   if (loading) {
     return (
       <div className="w-full mt-auto h-full justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4">
@@ -148,6 +176,7 @@ export default function DoctorsPage() {
     );
   }
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="w-full mt-auto justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4">
       <div className="w-3/4">

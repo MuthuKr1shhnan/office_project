@@ -34,8 +34,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
   const [addressError, setAddressError] = useState("");
   const [ageError, setAgeError] = useState("");
   const [genderError, setGenderError] = useState("");
-  const [roleError, setRoleError] = useState("");
-  const [degreeError, setDegreeError] = useState("");
+
   const [currentPasswordError, setCurrentPasswordError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
