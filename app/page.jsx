@@ -27,6 +27,7 @@ const loginSchema = Yup.object({
     .required("Email is required"),
   passwordLogin: Yup.string().required("Password is required"),
 });
+
 const passwordRules = [
   {
     label: "Must not contain spaces",
@@ -42,7 +43,7 @@ const passwordRules = [
   },
   {
     label: "Must contain at least one symbol",
-    test: (pwd) => /[^A-Za-z0-9]/.test(pwd),
+    test: (pwd) => /[^A-Za-z0-9\s]/.test(pwd), // FIXED
   },
   {
     label: "Must be at least 12 characters",
@@ -50,9 +51,10 @@ const passwordRules = [
   },
   {
     label: "Must contain only one symbol",
-    test: (pwd) => (pwd.match(/[^A-Za-z0-9]/g) || []).length === 1,
+    test: (pwd) => (pwd.match(/[^A-Za-z0-9\s]/g) || []).length === 1, // FIXED
   },
 ];
+
 const registerSchema = Yup.object({
   name: Yup.string()
     .required("Name is required")
