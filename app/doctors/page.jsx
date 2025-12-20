@@ -84,7 +84,7 @@ export default function DoctorsPage() {
     };
 
     getDoctorList();
-  }, []);
+  });
 
   /* ---------------- FETCH USER REQUEST STATUS ---------------- */
   useEffect(() => {

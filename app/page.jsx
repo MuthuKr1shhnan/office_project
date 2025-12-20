@@ -27,7 +27,32 @@ const loginSchema = Yup.object({
     .required("Email is required"),
   passwordLogin: Yup.string().required("Password is required"),
 });
-
+const passwordRules = [
+  {
+    label: "Must not contain spaces",
+    test: (pwd) => /^\S+$/.test(pwd),
+  },
+  {
+    label: "Must contain at least one letter",
+    test: (pwd) => /[A-Za-z]/.test(pwd),
+  },
+  {
+    label: "Must contain at least one number",
+    test: (pwd) => /\d/.test(pwd),
+  },
+  {
+    label: "Must contain at least one symbol",
+    test: (pwd) => /[^A-Za-z0-9]/.test(pwd),
+  },
+  {
+    label: "Must be at least 12 characters",
+    test: (pwd) => pwd.length >= 12,
+  },
+  {
+    label: "Must contain only one symbol",
+    test: (pwd) => (pwd.match(/[^A-Za-z0-9]/g) || []).length === 1,
+  },
+];
 const registerSchema = Yup.object({
   name: Yup.string()
     .required("Name is required")
@@ -193,7 +218,7 @@ const Login = ({ onLoginSuccess, onGoogleLogin }) => {
 // Register Component
 const Register = ({ onRegisterSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
-
+  const [list, setList] = useState(false);
   return (
     <Formik
       initialValues={{
@@ -448,6 +473,8 @@ const Register = ({ onRegisterSuccess }) => {
                   type={showPassword ? "text" : "password"}
                   name='password'
                   autoComplete='new-password'
+                  onFocus={() => setList(true)}
+                  onBlur={() => setList(false)}
                   value={values.password}
                   className='w-full text-sm rounded-lg px-3 outline-none'
                   placeholder='Choose a password'
@@ -481,11 +508,22 @@ const Register = ({ onRegisterSuccess }) => {
                 </button>
               </div>
             </div>
-            <ErrorMessage
-              name='password'
-              component='div'
-              className='text-xs text-red-600 mt-1'
-            />
+
+            <div className={`mt-2 space-y-1 ${!list ? "hidden" : "block"}`}>
+              {passwordRules.map((rule, idx) => {
+                const passed = rule.test(values.password || "");
+                return (
+                  <div key={idx} className='flex items-center text-sm '>
+                    <span className='mr-2'>{passed ? "✅" : "❌"}</span>
+                    <span
+                      className={passed ? "text-green-600" : "text-red-600"}
+                    >
+                      {rule.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Confirm Password */}
@@ -624,10 +662,10 @@ const Page = () => {
       }
 
       await setDoc(doc(db, "users", result.user.uid), userData);
-      
+
       localStorage.setItem("userRole", values.role);
       localStorage.setItem("isLoggedIn", "true");
-      
+
       router.push("/home");
     } catch (error) {
       console.error("Registration error:", error);
