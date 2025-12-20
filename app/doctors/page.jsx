@@ -167,10 +167,10 @@ export default function DoctorsPage() {
   /* ---------------- LOADING ---------------- */
   if (loading) {
     return (
-      <div className="w-full mt-auto h-full justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4">
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-500">Loading doctors...</p>
+      <div className='w-full mt-auto h-full justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4'>
+        <div className='flex flex-col items-center justify-center py-20'>
+          <div className='w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4'></div>
+          <p className='text-gray-500'>Loading doctors...</p>
         </div>
       </div>
     );
@@ -178,14 +178,15 @@ export default function DoctorsPage() {
 
   /* ---------------- UI ---------------- */
   return (
-    <div className="w-full mt-auto justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4">
-      <div className="w-3/4">
+    <div className='w-full mt-auto  justify-center items-center rounded-xl p-12 flex flex-col gap-4'>
+      <div className='w-3/4 '>
         <input
-          type="text"
-          placeholder="Search by Name, Phone, Degree or Location..."
+          type='text'
+          placeholder='Search by Name, Phone, Degree or Location...'
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          className='w-full backdrop-saturate-150
+         border-[#fc8086] px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500'
         />
       </div>
 
@@ -205,50 +206,67 @@ export default function DoctorsPage() {
         return (
           <div
             key={doctor.id}
-            className="w-3/4 bg-white rounded-xl shadow-md p-4 flex gap-4 items-start"
+            className='
+          w-3/4
+         
+          rounded-xl
+          p-4
+          flex
+          gap-4
+          items-start
+          bg-white/70
+          backdrop-blur-xl
+          backdrop-saturate-150
+         border-[#FE5B63]
+         border-[.10px]
+          shadow-[0_20px_40px_-10px_rgba(254,91,99,0.35)]
+          transition-all
+          duration-300
+          hover:shadow-[0_28px_55px_-12px_rgba(254,91,99,0.45)]
+        '
           >
             <Image
               src={doctor.photoURL || heroImage}
               alt={doctor.displayName || "Doctor"}
               width={64}
               height={64}
-              className="w-16 h-16 rounded-lg object-cover"
+              className='w-16 h-16 rounded-lg object-cover relative z-10'
             />
 
-            <div className="flex-1">
-              <div className="flex items-center gap-1">
-                <h2 className="font-semibold text-lg">
+            <div className='flex-1'>
+              <div className='flex items-center gap-1'>
+                <h2 className='font-semibold text-lg text-gray-900'>
                   {doctor.displayName || "Doctor"}
                 </h2>
                 {doctor.isVerified && (
-                  <Image src={tick} alt="verified" width={16} height={16} />
+                  <Image src={tick} alt='verified' width={16} height={16} />
                 )}
               </div>
 
               {doctor.degree && (
-                <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                  <Image src={degree} alt="degree" width={16} height={16} />
+                <div className='flex items-center gap-2 mt-1 text-sm text-gray-600'>
+                  <Image src={degree} alt='degree' width={16} height={16} />
                   <span>{doctor.degree}</span>
                 </div>
               )}
 
               {doctor.address && (
-                <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                  <Image src={location} alt="location" width={16} height={16} />
+                <div className='flex items-center gap-2 mt-1 text-sm text-gray-600'>
+                  <Image src={location} alt='location' width={16} height={16} />
                   <span>{doctor.address}</span>
                 </div>
               )}
 
               {doctor.phoneNumber && (
-                <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                  <Image src={phone} alt="phone" width={16} height={16} />
+                <div className='flex items-center gap-2 mt-1 text-sm text-gray-600'>
+                  <Image src={phone} alt='phone' width={16} height={16} />
                   <span>{doctor.phoneNumber}</span>
                 </div>
               )}
 
-              {doctor.price && (
-                <div className="mt-3 text-red-500 font-bold text-lg">
-                  Rs {doctor.price}/-
+              {doctor.fee && (
+                <div className='mt-3 text-red-500 font-bold text-lg'>
+                  Rs {doctor.fee}/-
                 </div>
               )}
 
