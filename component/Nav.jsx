@@ -133,51 +133,76 @@ export default function Nav() {
         {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className='md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50'
+          className='md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-[#FE636B] bg-slate-50'
         >
           <span className='sr-only'>Open menu</span>
-          <svg
-            className='w-5 h-5'
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
-          >
+          <svg className='w-5 h-5 stroke-[#FE636B]' viewBox='0 0 24 24'>
             <path
               strokeLinecap='round'
               strokeLinejoin='round'
-              strokeWidth={2}
-              d='M4 6h16M4 12h16M4 18h16'
+              strokeWidth={2.5}
+              className={`transition-all duration-300 origin-center ${
+                isOpen ? "rotate-45 translate-y-0" : ""
+              }`}
+              d={isOpen ? "M4 12h16" : "M4 6h16"}
+            />
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth={2.5}
+              className={`transition-opacity duration-300 ${
+                isOpen ? "opacity-0" : "opacity-100"
+              }`}
+              d='M4 12h16'
+            />
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth={2.5}
+              className={`transition-all duration-300 origin-center ${
+                isOpen ? "-rotate-45 translate-y-0" : ""
+              }`}
+              d={isOpen ? "M4 12h16" : "M4 18h16"}
             />
           </svg>
         </button>
 
         {/* Mobile Panel */}
         {isOpen && (
-          <div className='w-full md:hidden mt-4 border-t border-slate-200 pt-4'>
-            <div className='flex flex-col space-y-4'>
-              {filteredMenu.map((m, i) => (
-                <Link
-                  key={i}
-                  href={m.link}
-                  onClick={() => setIsOpen(false)}
-                  className={`font-medium transition-colors ${
-                    isActiveLink(m.link)
-                      ? "text-[#FE676E]" // ✅ Active state for mobile
-                      : "text-slate-600 hover:text-[#f97c83]"
-                  }`}
+          <div
+            className={`fixed top-16 pointer-none left-0 backdrop-blur-md h-full w-full bg-white/1 pl-8 pr-8 shadow-2xl 
+            transform transition-transform duration-800 ease-in-out 
+            z-60 overflow-y-auto ${
+              isOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+            onClick={() => setIsOpen(false)}
+          >
+            <div className='w-full md:hidden   pt-10'>
+              <div className='flex flex-col space-y-8'>
+                {filteredMenu.map((m, i) => (
+                  <Link
+                    key={i}
+                    href={m.link}
+                    onClick={() => setIsOpen(false)}
+                    className={`font-medium transition-colors ${
+                      isActiveLink(m.link)
+                        ? "text-[#FE676E]" // ✅ Active state for mobile
+                        : "text-slate-600 hover:text-[#f97c83]"
+                    }`}
+                  >
+                    {m.label}
+                  </Link>
+                ))}
+                <Btn
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsOpenDrawer(true);
+                  }}
+                  variant='primary'
                 >
-                  {m.label}
-                </Link>
-              ))}
-              <Btn
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsOpenDrawer(true);
-                }}
-                variant='primary'
-              >
-                {account.label}
-              </Btn>
+                  {account.label}
+                </Btn>
+              </div>
             </div>
           </div>
         )}

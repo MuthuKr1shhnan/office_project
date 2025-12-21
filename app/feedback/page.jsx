@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import emailjs from "emailjs-com";
-
+import Btn from "@/component/Btn";
 export default function FeedbackForm() {
   const [formData, setFormData] = useState({
     email: "",
@@ -49,9 +49,9 @@ export default function FeedbackForm() {
     <section className=" flex items-center justify-center px-4" style={{height : "calc(100vh - 65px)"}}>
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md text-black"
+        className="w-full p-5 md:p-0 md:max-w-md text-black"
       >
-        <h2 className="text-3xl font-semibold mb-6">
+        <h2 className="text-3xl font-semibold mb-12">
           Give Your Feedback
         </h2>
 
@@ -63,7 +63,7 @@ export default function FeedbackForm() {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full bg-transparent border-b border-gray-600 py-2 mb-6 focus:outline-none"
+          className="w-full bg-transparent border-b-[.25px] border-gray-600/55 py-2 mb-6 focus:outline-none"
         />
 
         <label className="block mb-2 text-gray-800">
@@ -74,16 +74,17 @@ export default function FeedbackForm() {
           rows="4"
           value={formData.message}
           onChange={handleChange}
-          className="w-full bg-transparent border-b border-gray-600 py-2 mb-8 resize-none focus:outline-none"
+          className="w-full bg-transparent border-b border-gray-600/55  py-2 mb-8 resize-none focus:outline-none"
         />
 
-        <button
+        <Btn
           type="submit"
+          variant="primary"
           disabled={loading}
           className="w-full bg-[#FE656D] text-white py-3 font-medium disabled:opacity-50 hover:bg-[#fc7c83]"
         >
           {loading ? "Sending..." : "Send Feedback"}
-        </button>
+        </Btn>
       </form>
     </section>
   );

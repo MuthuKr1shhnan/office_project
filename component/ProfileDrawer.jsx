@@ -116,8 +116,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
     setAddressError("");
     setAgeError("");
     setGenderError("");
-    setRoleError("");
-    setDegreeError("");
+
     setCurrentPasswordError("");
     setPasswordError("");
     setConfirmError("");
@@ -133,14 +132,11 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
       setNameError("Name is required");
       isValid = false;
     }
-
     if (!phoneNumber.trim()) {
       setPhoneError("Phone number is required");
       isValid = false;
-    } else if (!/^\d{10}$/.test(phoneNumber.replace(/[\s-]/g, ""))) {
-      setPhoneError("Enter a valid 10-digit phone number");
-      isValid = false;
     }
+    // Remove the regex validation for 10 digits since phone now has country code
 
     if (!address.trim()) {
       setAddressError("Address is required");
@@ -157,16 +153,6 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
 
     if (!gender) {
       setGenderError("Gender is required");
-      isValid = false;
-    }
-
-    if (!role) {
-      setRoleError("Please select your role");
-      isValid = false;
-    }
-
-    if (role === "doctor" && !degree.trim()) {
-      setDegreeError("Degree is required for doctors");
       isValid = false;
     }
 
@@ -421,7 +407,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
                         Phone
                       </span>
                       <span className='text-sm text-gray-700'>
-                        {phoneNumber}
+                        +{phoneNumber}
                       </span>
                     </div>
                   </div>

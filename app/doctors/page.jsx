@@ -178,7 +178,7 @@ export default function DoctorsPage() {
 
   /* ---------------- UI ---------------- */
   return (
-    <div className='w-full mt-auto  justify-center items-center rounded-xl p-12 flex flex-col gap-4'>
+    <div className='w-full mt-auto  justify-center items-center rounded-xl md:p-12 flex flex-col gap-4'>
       <div className='w-3/4 '>
         <input
           type='text'
@@ -212,6 +212,8 @@ export default function DoctorsPage() {
           rounded-xl
           p-4
           flex
+          flex-col
+          md:flex-row
           gap-4
           items-start
           bg-white/70
@@ -230,7 +232,7 @@ export default function DoctorsPage() {
               alt={doctor.displayName || "Doctor"}
               width={64}
               height={64}
-              className='w-16 h-16 rounded-lg object-cover relative z-10'
+              className='md:w-16 md:h-16 w-full h-auto rounded-lg object-cover relative z-10'
             />
 
             <div className='flex-1'>
