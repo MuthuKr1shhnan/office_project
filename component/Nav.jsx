@@ -31,8 +31,8 @@ const menu = [
     link: "/feedback",
   },
   {
-    label: "Support",
-    link: "/support",
+    label: "About",
+    link: "/about",
   },
 ];
 

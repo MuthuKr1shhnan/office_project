@@ -654,7 +654,7 @@ const Page = () => {
         fee: values.fee || "",
         email: values.email,
         displayName: values.name,
-        phoneNumber: values.phone,
+        phoneNumber: `+${values.phone}`,
         address: values.address,
         createdAt: new Date().toISOString(),
       };
