@@ -492,12 +492,14 @@ const Register = ({ onRegisterSuccess }) => {
                   onFocus={() => setList(true)}
                   onBlur={() => setList(false)}
                   value={values.password}
-                  className='w-full text-sm rounded-lg px-3 outline-none'
+                  className='w-full text-sm rounded-lg px-3 outline-none '
                   placeholder='Choose a password'
                 />
                 <button
                   className='p-1'
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => {
+                    setShowPassword(!showPassword);
+                  }}
                   type='button'
                 >
                   {showPassword ? (
