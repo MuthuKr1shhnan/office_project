@@ -407,7 +407,7 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
                         Phone
                       </span>
                       <span className='text-sm text-gray-700'>
-                        +{phoneNumber}
+                        {phoneNumber}
                       </span>
                     </div>
                   </div>

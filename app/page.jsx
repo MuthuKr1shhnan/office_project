@@ -7,7 +7,7 @@ import * as Yup from "yup";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import Image from "next/image";
-import { parsePhoneNumberWithError } from "libphonenumber-js";
+import { parsePhoneNumberWithError, AsYouType } from "libphonenumber-js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -25,7 +25,14 @@ const loginSchema = Yup.object({
   emailLogin: Yup.string()
     .email("Enter a valid email")
     .required("Email is required"),
-  passwordLogin: Yup.string().required("Password is required"),
+  passwordLogin: Yup.string()
+    .required("Password is required")
+    .matches(/^\S+$/, "Password must not contain spaces")
+    .matches(/[A-Za-z]/, "Password must contain at least one letter")
+    .matches(/\d/, "Password must contain at least one number")
+    .matches(/[^A-Za-z0-9]/, "Password must contain at least one symbol")
+    .min(12, "Password must be at least 12 characters")
+    .matches(/[^A-Za-z0-9]{1}/, "Password must contain only one symbol"),
 });
 
 const passwordRules = [
@@ -221,6 +228,8 @@ const Login = ({ onLoginSuccess, onGoogleLogin }) => {
 const Register = ({ onRegisterSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [list, setList] = useState(false);
+  const [format, setFormat] = useState("");
+  console.log(format);
   return (
     <Formik
       initialValues={{
@@ -377,8 +386,13 @@ const Register = ({ onRegisterSuccess }) => {
             <PhoneInput
               country={"us"}
               value={values.phone}
-              onChange={(phone) => {
-                setFieldValue("phone", phone || "");
+              onChange={(phone, country) => {
+                const formatter = new AsYouType(country.countryCode).input(
+                  phone
+                ); // pass country code here
+
+                setFormat(formatter);
+                setFieldValue("phone", formatter || "");
               }}
               inputProps={{
                 name: "phone",
