@@ -84,8 +84,13 @@ export default function Nav() {
 
         {/* Actions */}
         <div className='hidden md:flex items-center space-x-4'>
-          <Link href={"https://office-project-doctor.vercel.app/"} className="text-[#FE6870] font-medium text-[14px] pr-2 hover:underline">For Doctors</Link>
-          {otpVerified ? (
+          <Link
+            href={"https://office-project-doctor.vercel.app/"}
+            className='text-[#FE6870] font-medium text-[14px] pr-2 hover:underline'
+          >
+            For Doctors
+          </Link>
+          {otpVerified && user ? (
             <Btn
               onClick={() => {
                 setIsOpen(false);
@@ -165,15 +170,28 @@ export default function Nav() {
                     {m.label}
                   </Link>
                 ))}
-                <Btn
-                  onClick={() => {
-                    setIsOpen(false);
-                    setIsOpenDrawer(true);
-                  }}
-                  variant='primary'
-                >
-                  {account.label}
-                </Btn>
+                <div className='flex flex-col-reverse gap-2 w-full justify-center'>
+                  <Btn variant='primary'>
+                    <Link href={"https://office-project-doctor.vercel.app/"}>
+                      For Doctors
+                    </Link>
+                  </Btn>
+                  {otpVerified && user ? (
+                    <Btn
+                      onClick={() => {
+                        setIsOpen(false);
+                        setIsOpenDrawer(true);
+                      }}
+                      variant='primary'
+                    >
+                      {account.label}
+                    </Btn>
+                  ) : (
+                    <Btn variant='primary'>
+                      <Link href={login.path}>{login.label}</Link>
+                    </Btn>
+                  )}
+                </div>
               </div>
             </div>
           </div>
