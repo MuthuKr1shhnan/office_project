@@ -30,11 +30,12 @@ export default function DoctorsPage() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  
 
-  // Logged-in user profile from Firestore
+
   const [userProfile, setUserProfile] = useState(null);
 
-  // doctorId -> request status
+
   const [requestStatus, setRequestStatus] = useState({});
 
   const usersCollectionRef = collection(db, "users");

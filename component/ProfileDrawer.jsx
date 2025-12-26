@@ -5,7 +5,7 @@ import Image from "next/image";
 import Btn from "@/component/Btn";
 import { updateProfile, updatePassword, deleteUser } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -278,15 +278,8 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
     try {
       const currentUser = auth.currentUser;
       localStorage.removeItem("isLoggedIn");
-
-      // Delete Firestore document first
-      const userDocRef = doc(db, "users", user.uid);
-      await setDoc(userDocRef, {
-        deleted: true,
-        deletedAt: new Date().toISOString(),
-      });
-
-      // Delete Firebase Auth account
+      const ref = doc(db, "users", user.uid);
+      await deleteDoc(ref); // Delete Firebase Auth account
       await deleteUser(currentUser);
 
       alert("Account deleted successfully");

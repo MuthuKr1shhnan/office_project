@@ -10,51 +10,21 @@ import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
-
-const menu = [
-  {
-    label: "Home",
-    link: "/home",
-  },
-  {
-    label: "Doctors",
-    link: "/doctors",
-    hideFor: "doctor",
-  },
-  {
-    label: "Patients",
-    link: "/patients",
-    hideFor: "patient",
-  },
-  {
-    label: "Feedback",
-    link: "/feedback",
-  },
-  {
-    label: "About",
-    link: "/about",
-  },
-];
-
-const account = {
-  label: "My Account",
-  link: "/profile",
-};
+import { menu, login, account } from "../config/navData";
+import { patient } from "../assets/icon";
 
 export default function Nav() {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenDrawer, setIsOpenDrawer] = useState(false);
   const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
+  const [otpVerified, setOtpVerified] = useState(false);
   const router = useRouter();
-  const pathname = usePathname(); // ✅ Get current pathname
-
+  const pathname = usePathname();
   // 🔐 Check auth state and get user role
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         setUser(null);
-        setUserRole(null);
       } else {
         setUser(currentUser);
         // Get user role from Firestore
@@ -62,7 +32,7 @@ export default function Nav() {
           const userDocRef = doc(db, "users", currentUser.uid);
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
-            setUserRole(userDoc.data().role);
+            setOtpVerified(true);
           }
         } catch (err) {
           console.error("Error fetching user role:", err);
@@ -70,7 +40,7 @@ export default function Nav() {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   // 🚪 Logout
   const handleLogout = async () => {
@@ -83,12 +53,6 @@ export default function Nav() {
     }
   };
 
-  // Filter menu items based on user role
-  const filteredMenu = menu.filter((item) => {
-    if (!item.hideFor) return true;
-    return !item.hideFor.includes(userRole);
-  });
-
   // ✅ Helper function to check if link is active
   const isActiveLink = (link) => pathname === link;
 
@@ -96,13 +60,14 @@ export default function Nav() {
     <nav className='bg-white  border-b border-slate-200 sticky top-0 z-50'>
       <div className=' flex flex-wrap items-center justify-between p-3 pr-8 pl-8'>
         {/* Brand */}
-        <Link href='/'>
+        <Link href='/' className='flex gap-2 items-center'>
+          <Image src={patient} alt='Logo' className='h-12 w-auto' />
           <Image src={logo} alt='Logo' className='h-8 w-auto' />
         </Link>
 
         {/* Desktop Menu */}
         <div className='hidden md:flex items-center space-x-8'>
-          {filteredMenu.map((d, i) => (
+          {menu.map((d, i) => (
             <Link
               key={i}
               href={d.link}
@@ -119,15 +84,22 @@ export default function Nav() {
 
         {/* Actions */}
         <div className='hidden md:flex items-center space-x-4'>
-          <Btn
-            onClick={() => {
-              setIsOpen(false);
-              setIsOpenDrawer(true);
-            }}
-            variant='primary'
-          >
-            {account.label}
-          </Btn>
+          <Link href={"https://office-project-doctor.vercel.app/"} className="text-[#FE6870] font-medium text-[14px] pr-2 hover:underline">For Doctors</Link>
+          {otpVerified ? (
+            <Btn
+              onClick={() => {
+                setIsOpen(false);
+                setIsOpenDrawer(true);
+              }}
+              variant='primary'
+            >
+              {account.label}
+            </Btn>
+          ) : (
+            <Btn variant='primary'>
+              <Link href={login.path}>{login.label}</Link>
+            </Btn>
+          )}
         </div>
 
         {/* Mobile Toggle */}
@@ -167,7 +139,7 @@ export default function Nav() {
           </svg>
         </button>
 
-        {/* Mobile Panel */}
+        {/* Mobile Panel 📱📱📱 */}
         {isOpen && (
           <div
             className={`fixed top-16 pointer-none left-0 backdrop-blur-md h-full w-full bg-white/1 pl-8 pr-8 shadow-2xl 
@@ -179,7 +151,7 @@ export default function Nav() {
           >
             <div className='w-full md:hidden   pt-10'>
               <div className='flex flex-col space-y-8'>
-                {filteredMenu.map((m, i) => (
+                {menu.map((m, i) => (
                   <Link
                     key={i}
                     href={m.link}

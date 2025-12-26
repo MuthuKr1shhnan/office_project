@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/doctors/page.jsx", "app/feedback/page.jsx", "app/profile/page.jsx", "app/patients/page.jsx", "app/register/page.jsx", "app/about/page.jsx", "app/page.jsx"  ],
+, "app/doctors/page.jsx", "app/feedback/page.jsx", "app/profile/page.jsx", "app/chats/page.jsx", "app/register/page.jsx", "app/about/page.jsx", "app/page.jsx"  ],
   "exclude": ["node_modules"]
 }
