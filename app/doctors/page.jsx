@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import "../globals.css";
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import {
   collection,
   getDocs,
@@ -13,7 +13,7 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   LocationIcon as location,
   TickIcon as tick,
@@ -23,18 +23,13 @@ import {
 
 import heroImage from "../../assets/heroimage.png";
 
-const auth = getAuth();
-
 export default function DoctorsPage() {
   const [search, setSearch] = useState("");
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  
-
 
   const [userProfile, setUserProfile] = useState(null);
-
 
   const [requestStatus, setRequestStatus] = useState({});
 

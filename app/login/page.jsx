@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signOut,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import {
@@ -30,9 +31,11 @@ const Page = () => {
     const tempRef = doc(db, "tempUsers", uid);
 
     const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      router.replace("/home");
+    if (userSnap.exists() && userSnap.data().role === "patient") {
+      router.replace("/");
       return;
+    } else {
+      await signOut(auth);
     }
 
     const tempSnap = await getDoc(tempRef);
