@@ -323,14 +323,14 @@ export default function ProfileDrawer({ isOpen, onClose, user, onLogout }) {
       {/* Overlay */}
       {isOpen && (
         <div
-          className='fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300'
+          className='absolute inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300'
           onClick={onClose}
         />
       )}
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-out z-50 overflow-y-auto
+        className={`absolute top-0  h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-out z-50 overflow-y-auto
         ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header with Close Button */}

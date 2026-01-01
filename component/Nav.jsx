@@ -2,7 +2,7 @@
 import logo from "../assets/logo.png";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // ✅ Import usePathname
+import { usePathname } from "next/navigation";
 import Btn from "../component/Btn";
 import Image from "next/image";
 import ProfileDrawer from "../component/ProfileDrawer";
@@ -58,12 +58,11 @@ export default function Nav() {
     }
   };
 
-  // ✅ Helper function to check if link is active
   const isActiveLink = (link) => pathname === link;
 
   return (
-    <nav className='bg-white  border-b border-slate-200 sticky top-0 z-50'>
-      <div className=' flex flex-wrap items-center justify-between p-3 pr-8 pl-8'>
+    <nav className='bg-white w-64 h-screen border-r border-slate-200 fixed left-0 top-0'>
+      <div className=' flex flex-col  justify-between p-3 '>
         {/* Brand */}
         <Link href='/' className='flex gap-2 items-center'>
           <Image src={patient} alt='Logo' className='h-12 w-auto' />
@@ -71,7 +70,8 @@ export default function Nav() {
         </Link>
 
         {/* Desktop Menu */}
-        <div className='hidden md:flex items-center space-x-8'>
+       <div className='hidden md:flex flex-col items-start space-y-6 mt-8'>
+
           {menu.map((d, i) => (
             <Link
               key={i}
@@ -85,16 +85,14 @@ export default function Nav() {
               {d.label}
             </Link>
           ))}
-        </div>
-
-        {/* Actions */}
-        <div className='hidden md:flex items-center space-x-4'>
-          <Link
-            href={"https://office-project-doctor.vercel.app/"}
-            className='text-[#FE6870] font-medium text-[14px] pr-2 hover:underline'
-          >
-            For Doctors
-          </Link>
+          <Btn variant="sec" className="w-full">
+            <Link
+              href={"https://office-project-doctor.vercel.app/"}
+              className='text-[#FE6870] font-medium text-[14px] pr-2 hover:underline'
+            >
+              For Doctors
+            </Link>
+          </Btn>
           {otpVerified && user && roleVerified ? (
             <Btn
               onClick={() => {
@@ -102,15 +100,20 @@ export default function Nav() {
                 setIsOpenDrawer(true);
               }}
               variant='primary'
+              className="w-full"
             >
               {account.label}
             </Btn>
           ) : (
-            <Btn variant='primary'>
+            <Btn variant='primary' className="w-full">
               <Link href={login.path}>{login.label}</Link>
             </Btn>
           )}
         </div>
+
+      
+        
+
 
         {/* Mobile Toggle */}
         <button
