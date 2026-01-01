@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import io from "socket.io-client";
 import { auth, db } from "@/lib/firebase";
 import {
   collection,
@@ -13,10 +12,6 @@ import {
   doc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-
-const socket = io("https://office-task-backend.onrender.com", {
-  transports: ["websocket"],
-});
 
 export default function PatientChat() {
   const [user, setUser] = useState(null);
@@ -71,21 +66,12 @@ export default function PatientChat() {
   /* JOIN ROOM + LOAD HISTORY */
   useEffect(() => {
     if (!room || !user) return;
-
-    socket.emit("join_room", {
-      roomId: room,
-      userId: user.uid,
-    });
-
     loadHistory(room);
   }, [room]);
 
   /* LOAD MESSAGE HISTORY */
   const loadHistory = async (roomId) => {
-    const q = query(
-      collection(db, "messages"),
-      where("roomId", "==", roomId)
-    );
+    const q = query(collection(db, "messages"), where("roomId", "==", roomId));
 
     const snap = await getDocs(q);
     const history = snap.docs
@@ -94,16 +80,6 @@ export default function PatientChat() {
 
     setMessages(history);
   };
-
-  /* SOCKET RECEIVE */
-  useEffect(() => {
-    const handler = (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    };
-
-    socket.on("r_message", handler);
-    return () => socket.off("r_message", handler);
-  }, []);
 
   /* SEND MESSAGE */
   const sendMessage = async () => {
@@ -118,7 +94,6 @@ export default function PatientChat() {
     };
 
     await addDoc(collection(db, "messages"), msg);
-    socket.emit("send_message", msg);
 
     setMessages((prev) => [...prev, msg]);
     setInput("");
