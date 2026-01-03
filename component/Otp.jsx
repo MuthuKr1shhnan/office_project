@@ -30,7 +30,7 @@ export const Otp = () => {
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockTimeRemaining, setBlockTimeRemaining] = useState(0);
   const inputRefs = useRef([]);
-   
+
   /* ================= AUTH ================= */
   const handleChange = (e, index) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -250,7 +250,7 @@ export const Otp = () => {
     await deleteDoc(ref);
     await transferToUsersCollection();
     setLoading(false);
-    router.push("/home");
+    router.push("/");
   };
 
   /* ================= RESEND OTP ================= */
