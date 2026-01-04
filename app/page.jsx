@@ -35,29 +35,23 @@ export default function Home() {
   }, []);
 
   return (
-   <section
-  className="w-full h-[calc(100dvh)] bg-cover bg-left-4 bg-center relative"
-  style={{ backgroundImage: `url(${heroImage.src})` }}
->
-  <div className="flex flex-col justify-center items-start h-full px-8">
-    <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-black ">
-      Doctor vs Patient
-    </h1>
-
-    <p className="mt-4 text-sm md:text-lg lg:text-xl text-black max-w-xl">
-      Connecting healthcare professionals with patients anytime, anywhere.
-    </p>
-
-    <Btn
-      variant="primary"
-      className="mt-6 px-6 py-3"
-      disabled={loading}
+    <section
+      className='w-full h-[calc(100dvh)] bg-cover bg-left-4 bg-center relative'
+      style={{ backgroundImage: `url(${heroImage.src})` }}
     >
-      <Link href="/doctors">
-        {loading ? "Loading..." : "Get Started"}
-      </Link>
-    </Btn>
-  </div>
-</section>
+      <div className='flex flex-col justify-center items-start h-full px-8'>
+        <h1 className='text-2xl md:text-4xl lg:text-5xl font-bold text-black '>
+          Doctor vs Patient
+        </h1>
+
+        <p className='mt-4 text-sm md:text-lg lg:text-xl text-black max-w-xl'>
+          Connecting healthcare professionals with patients anytime, anywhere.
+        </p>
+
+        <Btn variant='primary' className='mt-6 px-6 py-3' disabled={loading}>
+          <Link href='/doctors'>{loading ? "Loading..." : "Get Started"}</Link>
+        </Btn>
+      </div>
+    </section>
   );
 }

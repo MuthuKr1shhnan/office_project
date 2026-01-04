@@ -16,6 +16,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 export default function PatientChat() {
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [doctors, setDoctors] = useState([]);
   const [room, setRoom] = useState(null);
@@ -62,6 +63,7 @@ export default function PatientChat() {
       }
 
       setDoctors(list);
+      setLoading(false);
     };
 
     load();
@@ -187,7 +189,17 @@ export default function PatientChat() {
       hour12: true,
     });
   };
-
+  /* ---------------- LOADING ---------------- */
+  if (loading) {
+    return (
+      <div className='w-full mt-auto h-full justify-center items-center bg-white rounded-xl p-12 flex flex-col gap-4'>
+        <div className='flex flex-col items-center justify-center py-20'>
+          <div className='w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4'></div>
+          <p className='text-gray-500'>Loading chats...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className='flex h-screen bg-gradient-to-br from-slate-50 to-slate-100'>
       <div className='w-80 bg-white border-r border-slate-200 flex flex-col shadow-lg'>
@@ -214,13 +226,11 @@ export default function PatientChat() {
                     <div className='w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-semibold text-lg shadow-md'>
                       {d.doctor.displayName?.charAt(0).toUpperCase() || "D"}
                     </div>
-                    
                   </div>
                   <div className='flex-1 min-w-0'>
                     <p className='font-semibold text-slate-800 truncate'>
                       {d.doctor.displayName}
                     </p>
-                   
                   </div>
                 </div>
               </button>

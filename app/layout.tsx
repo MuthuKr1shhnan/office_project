@@ -1,20 +1,20 @@
-"use client";
-
 import Nav from "../component/Nav";
-import Loader from "../component/Loader";
 import "./globals.css";
-
+import ToastProvider from "../component/ToastProvider";
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-  <html lang='en'>
+    <html lang='en'>
       <body className='  md:flex'>
-          <Nav />
+        <Nav />
 
-        <main className='flex-1 h-screen overflow-y-auto'>{children}</main>
+        <main className='flex-1 h-screen overflow-y-auto'>
+          {children}
+          <ToastProvider />
+        </main>
       </body>
     </html>
   );
