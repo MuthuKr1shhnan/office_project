@@ -109,7 +109,7 @@ export const Otp = () => {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        router.push("/");
+        router.push("/home");
         return;
       }
 

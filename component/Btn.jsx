@@ -1,5 +1,5 @@
 "use client";
-
+import "../app/globals.css";
 export default function Btn({
   children,
   variant = "primary",
@@ -9,9 +9,8 @@ export default function Btn({
   const baseStyles =
     "px-4 py-2 rounded-full font-medium transition-all shadow-md hover:shadow-lg";
   const variantStyles = {
-    primary:
-      "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-indigo-700 hover:to-purple-700",
-    sec: "bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50",
+    primary: "btn-primary",
+    sec: "btn-sec",
   };
 
   return (

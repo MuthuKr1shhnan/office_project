@@ -1,4 +1,4 @@
-import Nav from "../component/Nav";
+import { NavbarWrapper } from "../component/Nav";
 import "./globals.css";
 import ToastProvider from "../component/ToastProvider";
 export default function RootLayout({
@@ -9,8 +9,7 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className='  md:flex'>
-        <Nav />
-
+        <NavbarWrapper />
         <main className='flex-1 h-screen overflow-y-auto'>
           {children}
           <ToastProvider />

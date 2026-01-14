@@ -1,7 +1,7 @@
 export const menu = [
   {
     label: "Home",
-    link: "/",
+    link: "/home",
   },
   {
     label: "Doctors",

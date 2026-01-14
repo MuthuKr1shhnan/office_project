@@ -1,11 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
 import Image from "next/image";
 import { EyeCloseIcon, EyeOpenIcon } from "@/assets/icon";
-import { AsYouType } from "libphonenumber-js";
 import Btn from "./Btn";
 export const Register = ({
   onRegisterSuccess,
@@ -18,15 +15,9 @@ export const Register = ({
   return (
     <Formik
       initialValues={{
-        name: "",
         email: "",
         password: "",
         confirmPassword: "",
-
-        fee: "",
-        phone: "",
-        address: "",
-        degree: "",
       }}
       validationSchema={registerSchema}
       validateOnChange
@@ -38,35 +29,11 @@ export const Register = ({
         errors,
         touched,
         values,
-        setFieldValue,
+
         isValid,
         dirty,
       }) => (
         <Form className='space-y-4'>
-          {/* Name */}
-          <div>
-            <label className='block text-xs text-gray-600 mb-1'>
-              Full name *
-            </label>
-            <Field
-              type='text'
-              name='name'
-              autoComplete='name'
-              value={values.name}
-              className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.name && touched.name
-                  ? "border-red-300"
-                  : "border-gray-200"
-              }`}
-              placeholder='Your full name'
-            />
-            <ErrorMessage
-              name='name'
-              component='div'
-              className='text-xs text-red-600 mt-1'
-            />
-          </div>
-
           {/* Email */}
           <div>
             <label className='block text-xs text-gray-600 mb-1'>Email *</label>
@@ -84,74 +51,6 @@ export const Register = ({
             />
             <ErrorMessage
               name='email'
-              component='div'
-              className='text-xs text-red-600 mt-1'
-            />
-          </div>
-
-          {/* Phone Number */}
-          <div>
-            <label className='block text-xs text-gray-600 mb-1'>
-              Phone Number *
-            </label>
-
-            <PhoneInput
-              country={"us"}
-              value={values.phone}
-              onChange={(phone, country) => {
-                const formatter = new AsYouType(country.countryCode).input(
-                  phone
-                ); // pass country code here
-
-                setFieldValue("phone", formatter || "");
-              }}
-              inputProps={{
-                name: "phone",
-                required: true,
-                autoComplete: "tel",
-                className: `!w-full !h-10 !pl-12 !pr-3 !py-2 !text-gray-700 !border !border-gray-300 !rounded-md focus:!outline-none focus:!ring-2 focus:!ring-blue-500 focus:!border-blue-500  ${
-                  errors.phone && touched.phone
-                    ? "!border-red-300"
-                    : "!border-gray-200"
-                }`,
-              }}
-              containerClass='!w-full'
-              buttonClass={`!absolute !top-0 !bottom-0 !left-0 !w-12 !h-full !flex !items-center !justify-center !bg-gray-50 hover:!bg-gray-100 !border-r !border-gray-300 !rounded-l-md ${
-                errors.phone && touched.phone
-                  ? "!border-red-300"
-                  : "!border-gray-200"
-              }`}
-              dropdownClass='!absolute !left-0 !mt-1 !w-64 !bg-white !shadow-lg !rounded-md !max-h-60 !overflow-y-auto !z-50 !border !border-gray-200'
-              searchClass='!w-full !border !border-gray-300 !px-3 !py-2 !rounded-md focus:!outline-none focus:!ring-2 focus:!ring-blue-500 focus:!border-blue-500 !m-2'
-            />
-
-            <ErrorMessage
-              name='phone'
-              component='div'
-              className='text-xs text-red-600 mt-1'
-            />
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className='block text-xs text-gray-600 mb-1'>
-              Address *
-            </label>
-            <Field
-              as='textarea'
-              name='address'
-              autoComplete='street-address'
-              value={values.address}
-              className={`w-full text-sm bg-white border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                errors.address && touched.address
-                  ? "border-red-300"
-                  : "border-gray-200"
-              }`}
-              placeholder='Your complete address'
-              rows='2'
-            />
-            <ErrorMessage
-              name='address'
               component='div'
               className='text-xs text-red-600 mt-1'
             />

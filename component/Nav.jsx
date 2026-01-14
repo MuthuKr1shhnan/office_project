@@ -12,11 +12,13 @@ import { menu, login, account } from "../config/navData";
 
 // Mock components and data for demonstration
 
-export default function Nav() {
+function Nav() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState();
   const [otpVerified, setOtpVerified] = useState(false);
   const [roleVerified, setRoleVerified] = useState(false);
+  const [showButton, setShowButton] = useState(false);
   const pathname = usePathname();
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -29,8 +31,10 @@ export default function Nav() {
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
           const userDoc = await getDoc(userDocRef);
+
           if (userDoc.exists()) {
             setOtpVerified(true);
+            setUserData(userDoc.data().name);
           }
           if (userDoc.exists() && userDoc.data().role === "patient") {
             setRoleVerified(true);
@@ -54,10 +58,73 @@ export default function Nav() {
           <Link href={"/"} className='mb-8'>
             <Image src={logo} height={36} alt='logo' />
           </Link>
-          {/* Desktop Menu */}
-          <div className='flex flex-col flex-1 items-start space-y-4'>
+          {/* Desktop Menu */}{" "}
+          <div className='w-full border-2 rounded-2xl p-4'>
+            {/* Top Row: Avatar + Email + ID + Info + Arrow */}
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-4'>
+                {/* Placeholder Avatar */}
+                <div className='w-12 h-12 bg-gray-300 rounded-full'></div>
+
+                {/* Email + ID */}
+                <div>
+                  <div className='text-gray-800 font-semibold'>{userData}</div>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-red-500 text-sm'>1767699033</span>
+                    {/* Info Icon */}
+                    <div className='w-4 h-4 bg-gray-300 rounded-full text-center text-xs flex items-center justify-center'>
+                      i
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Down Arrow */}
+              <div
+                className='text-gray-400 cursor-pointer'
+                onClick={() => setShowButton(!showButton)}
+              >
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  className={`h-5 w-5 transform ${
+                    showButton ? "rotate-180" : ""
+                  }`}
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M19 9l-7 7-7-7'
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Conditional Button */}
+            {showButton && (
+              <div className='mt-4'>
+                {otpVerified && user ? (
+                  <Btn variant='primary' className='w-full'>
+                    <a href='/profile' className='block w-full text-center'>
+                      {account.label}
+                    </a>
+                  </Btn>
+                ) : (
+                  <Btn variant='primary' className='w-full'>
+                    <a href={login.path} className='block w-full text-center'>
+                      {login.label}
+                    </a>
+                  </Btn>
+                )}
+              </div>
+            )}
+          </div>
+          <div className='flex flex-col items-start my-auto space-y-8'>
             {menu.map((d, i) => (
-              <a
+              <Link
                 key={i}
                 href={d.link}
                 className={`font-medium transition-all duration-200 px-4 py-2 rounded-lg w-full ${
@@ -67,24 +134,8 @@ export default function Nav() {
                 }`}
               >
                 {d.label}
-              </a>
+              </Link>
             ))}
-
-            <div className='flex flex-col w-full space-y-4 mt-auto'>
-              {otpVerified && user && roleVerified ? (
-                <Btn variant='primary' className='w-full'>
-                  <a href='/profile' className='block w-full'>
-                    {account.label}
-                  </a>
-                </Btn>
-              ) : (
-                <Btn variant='primary' className='w-full'>
-                  <a href={login.path} className='block w-full'>
-                    {login.label}
-                  </a>
-                </Btn>
-              )}
-            </div>
           </div>
         </div>
       </nav>
@@ -96,6 +147,7 @@ export default function Nav() {
           <Link href={"/"}>
             <Image src={logo} height={36} alt='logo' />
           </Link>
+
           {/* Toggle */}
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -156,23 +208,85 @@ export default function Nav() {
               ))}
 
               <div className='flex flex-col space-y-4 mt-auto'>
-                {otpVerified && user && roleVerified ? (
-                  <Btn
-                    variant='primary'
-                    onClick={() => {
-                      setIsOpen(false);
-                    }}
-                    className='w-full'
+                <Btn variant='sec' className='w-full mt-4'>
+                  <a
+                    href='https://office-project-doctor.vercel.app/'
+                    className='block w-full'
                   >
-                    {account.label}
-                  </Btn>
-                ) : (
-                  <Btn variant='primary' className='w-full'>
-                    <a href={login.path} className='block w-full'>
-                      {login.label}
-                    </a>
-                  </Btn>
-                )}
+                    For Doctors
+                  </a>
+                </Btn>
+                <div className='w-full border-2 rounded-2xl p-4'>
+                  {/* Top Row: Avatar + Email + ID + Info + Arrow */}
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-4'>
+                      {/* Placeholder Avatar */}
+                      <div className='w-12 h-12 bg-gray-300 rounded-full'></div>
+
+                      {/* Email + ID */}
+                      <div>
+                        <div className='text-gray-800 font-semibold'>Muthu</div>
+                        <div className='flex items-center gap-2'>
+                          <span className='text-red-500 text-sm'>
+                            1767699033
+                          </span>
+                          {/* Info Icon */}
+                          <div className='w-4 h-4 bg-gray-300 rounded-full text-center text-xs flex items-center justify-center'>
+                            i
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Down Arrow */}
+                    <div
+                      className='text-gray-400 cursor-pointer'
+                      onClick={() => setShowButton(!showButton)}
+                    >
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        className={`h-5 w-5 transform ${
+                          showButton ? "rotate-180" : ""
+                        }`}
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M19 9l-7 7-7-7'
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Conditional Button */}
+                  {showButton && (
+                    <div className='mt-4'>
+                      {otpVerified && user ? (
+                        <Btn variant='primary' className='w-full'>
+                          <a
+                            href='/profile'
+                            className='block w-full text-center'
+                          >
+                            {account.label}
+                          </a>
+                        </Btn>
+                      ) : (
+                        <Btn variant='primary' className='w-full'>
+                          <a
+                            href={login.path}
+                            className='block w-full text-center'
+                          >
+                            {login.label}
+                          </a>
+                        </Btn>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -180,4 +294,16 @@ export default function Nav() {
       </nav>
     </div>
   );
+}
+const NAVBAR_ROUTES = ["/home", "/profile", "/settings"];
+export function NavbarWrapper() {
+  const pathname = usePathname();
+
+  const shouldShowNavbar = NAVBAR_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  if (!shouldShowNavbar) return null;
+
+  return <Nav />;
 }
